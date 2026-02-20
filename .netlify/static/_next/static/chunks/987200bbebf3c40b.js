@@ -1,0 +1,29 @@
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,97094,e=>{"use strict";var t=e.i(25157),s=e.i(85547);let a={blog:{label:"Blog Post",icon:"📝",placeholder:"e.g., 5 Signs Your Bike Needs a Service"},social:{label:"Social Post",icon:"📱",placeholder:"e.g., New bike accessories just in!"},email:{label:"Email",icon:"📧",placeholder:"e.g., Spring service promotion"},caption:{label:"Caption",icon:"🎬",placeholder:"e.g., Bike repair timelapse video"}};function r(){let[e,r]=(0,s.useState)("social"),[n,i]=(0,s.useState)(""),[o,l]=(0,s.useState)(!1),[c,d]=(0,s.useState)([{id:"1",title:"5 Essential Winter Bike Maintenance Tips",body:"As the temperatures drop, it's crucial to prepare your bike for winter riding. Here are our top tips...\n\n1. Clean your chain and apply wet lube\n2. Check your brake pads for wear\n3. Inspect tire pressure more frequently\n4. Store your bike indoors when possible\n5. Get a professional winter service\n\nRegular maintenance extends your bike's lifespan and ensures safe riding throughout the colder months.",type:"blog",createdAt:"2 hours ago"},{id:"2",title:"Spring into Action! 🚴",body:"☀️ Spring is here! Is your bike ready?\n\nBook your service today and get 20% off any repairs booked before the end of March!\n\n🔧 Full Service from £99\n⚡ Quick Tune-up from £35\n\nDon't wait until your chain snaps on a weekend ride. Message us to book!",type:"social",createdAt:"1 day ago"}]),p=async()=>{var t,s;n.trim()&&(l(!0),await new Promise(e=>setTimeout(e,2e3)),d([{id:Date.now().toString(),title:n,body:`✨ Here's AI-generated ${a[e].label.toLowerCase()} about "${n}":
+
+${(t=n,s=e,({blog:`As cycling enthusiasts, we often get asked: "How do I know if my bike needs servicing?" Here's the truth — waiting until something breaks is never fun.
+
+🔧 Squeaky brakes? That's not normal.
+⚙️ Gear skipping? Time for adjustment.
+🛞 Wobbly wheels? Could need truing.
+
+Regular maintenance saves money long-term and keeps you safe. Book a checkup today!`,social:`🚴 ${t}?
+
+We've got you covered! Our expert mechanics are ready to help.
+
+👇 DM us to book or ask questions!`,email:`Hi there!
+
+Thought you'd be interested in our ${t} services!
+
+We offer:
+✅ Expert mechanics
+✅ Quick turnaround
+✅ Fair pricing
+
+Book online or reply to this email!
+
+Best,
+The Bike Clinique Team`,caption:`🚴 ${t} 🔧
+
+Tag a friend who needs to see this! 👇
+
+#BikeLife #BikeRepair #CyclingUK`})[s])}`,type:e,createdAt:"Just now"},...c]),i(""),l(!1))};return(0,t.jsxs)("div",{children:[(0,t.jsxs)("div",{className:"flex justify-between items-center mb-6",children:[(0,t.jsxs)("div",{children:[(0,t.jsx)("h1",{className:"text-2xl font-bold text-[#1A1A2E]",children:"AI Content Builder"}),(0,t.jsx)("p",{className:"text-sm text-gray-500",children:"Generate marketing content with AI"})]}),(0,t.jsx)("span",{className:"px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm",children:"🧠 AI Powered"})]}),(0,t.jsxs)("div",{className:"bg-white rounded-xl p-6 shadow-sm mb-8",children:[(0,t.jsx)("h2",{className:"text-lg font-semibold mb-4",children:"Create New Content"}),(0,t.jsx)("div",{className:"flex gap-2 mb-4",children:Object.entries(a).map(([s,a])=>(0,t.jsxs)("button",{onClick:()=>r(s),className:`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors ${e===s?"bg-[#1A1A2E] text-white":"bg-gray-100 text-gray-600 hover:bg-gray-200"}`,children:[(0,t.jsx)("span",{children:a.icon}),(0,t.jsx)("span",{children:a.label})]},s))}),(0,t.jsxs)("div",{className:"flex gap-3",children:[(0,t.jsx)("input",{type:"text",value:n,onChange:e=>i(e.target.value),onKeyDown:e=>"Enter"===e.key&&p(),placeholder:a[e].placeholder,className:"flex-1 px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#FF6B35]"}),(0,t.jsx)("button",{onClick:p,disabled:o||!n.trim(),className:`px-6 py-3 rounded-lg font-medium transition-colors ${o||!n.trim()?"bg-gray-200 text-gray-500 cursor-not-allowed":"bg-[#FF6B35] text-white hover:bg-[#e55a2b]"}`,children:o?(0,t.jsxs)("span",{className:"flex items-center gap-2",children:[(0,t.jsx)("span",{className:"animate-spin",children:"⏳"})," Generating..."]}):"✨ Generate"})]}),(0,t.jsxs)("div",{className:"mt-4",children:[(0,t.jsx)("p",{className:"text-xs text-gray-500 mb-2",children:"Quick ideas:"}),(0,t.jsx)("div",{className:"flex flex-wrap gap-2",children:["Spring service promo","How to clean your bike","New winter gear","Bike safety tips"].map(e=>(0,t.jsx)("button",{onClick:()=>i(e),className:"px-3 py-1 text-xs bg-gray-100 rounded-full hover:bg-gray-200 transition-colors",children:e},e))})]})]}),(0,t.jsx)("h2",{className:"text-lg font-semibold mb-4",children:"Generated Content"}),(0,t.jsx)("div",{className:"space-y-4",children:c.map(e=>(0,t.jsxs)("div",{className:"bg-white rounded-xl p-6 shadow-sm",children:[(0,t.jsxs)("div",{className:"flex justify-between items-start mb-3",children:[(0,t.jsxs)("div",{className:"flex items-center gap-2",children:[(0,t.jsx)("span",{className:"text-xl",children:a[e.type].icon}),(0,t.jsx)("span",{className:"px-2 py-0.5 bg-gray-100 rounded text-xs",children:a[e.type].label})]}),(0,t.jsx)("span",{className:"text-xs text-gray-400",children:e.createdAt})]}),(0,t.jsx)("h3",{className:"font-semibold text-[#1A1A2E] mb-2",children:e.title}),(0,t.jsx)("pre",{className:"text-sm text-gray-600 whitespace-pre-wrap font-sans",children:e.body}),(0,t.jsxs)("div",{className:"flex gap-2 mt-4 pt-4 border-t",children:[(0,t.jsx)("button",{className:"px-4 py-2 text-sm bg-[#FF6B35] text-white rounded-lg hover:bg-[#e55a2b]",children:"Copy"}),(0,t.jsx)("button",{className:"px-4 py-2 text-sm border rounded-lg hover:bg-gray-50",children:"Edit"}),(0,t.jsx)("button",{className:"px-4 py-2 text-sm border rounded-lg hover:bg-gray-50",children:"Schedule"})]})]},e.id))})]})}e.s(["default",()=>r])}]);
