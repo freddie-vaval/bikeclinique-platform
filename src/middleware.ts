@@ -63,7 +63,10 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith(route)
   )
 
-  if (isProtectedRoute && !user) {
+  // Check for demo user
+  const isDemoUser = request.cookies.get('demo_user')?.value === 'true'
+
+  if (isProtectedRoute && !user && !isDemoUser) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 

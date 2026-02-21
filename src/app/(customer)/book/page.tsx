@@ -6,17 +6,9 @@ interface Service {
   id: string
   name: string
   price: number
-  duration: number
+  duration_minutes: number
+  description: string
 }
-
-const services: Service[] = [
-  { id: '1', name: 'Full Service', price: 150, duration: 90 },
-  { id: '2', name: 'Gear Tune', price: 45, duration: 30 },
-  { id: '3', name: 'Brake Service', price: 55, duration: 30 },
-  { id: '4', name: 'Tyre Change', price: 15, duration: 15 },
-  { id: '5', name: 'Chain Replace', price: 25, duration: 20 },
-  { id: '6', name: 'Puncture Repair', price: 12, duration: 15 },
-]
 
 const timeSlots = [
   '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
@@ -25,15 +17,12 @@ const timeSlots = [
 ]
 
 export default function BookingPage() {
+  const [services, setServices] = useState<Service[]>([])
+  const [loading, setLoading] = useState(true)
   const [step, setStep] = useState(1)
   const [selectedService, setSelectedService] = useState<Service | null>(null)
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
-  const [collection, setCollection] = useState(false)
-  const [paymentRequired, setPaymentRequired] = useState(false)
-  const [paymentProcessing, setPaymentProcessing] = useState(false)
-  const [paymentSuccess, setPaymentSuccess] = useState(false)
-  const [clientSecret, setClientSecret] = useState('')
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -41,87 +30,103 @@ export default function BookingPage() {
     bike: '',
     notes: '',
   })
+  const [submitting, setSubmitting] = useState(false)
+  const [success, setSuccess] = useState(false)
 
-  const total = selectedService?.price || 0
+  useEffect(() => {
+    fetchServices()
+  }, [])
 
-  // Generate next 14 days
+  const fetchServices = async () => {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    try {
+      const res = await fetch(`${supabaseUrl}/rest/v1/services?select=*&is_active=eq.true&order=name`, {
+        headers: { 'apikey': supabaseKey!, 'Authorization': `Bearer ${supabaseKey}` }
+      })
+      const data = await res.json()
+      setServices(data || [])
+    } catch (err) {
+      console.error('Error fetching services:', err)
+    }
+    setLoading(false)
+  }
+
   const dates = Array.from({ length: 14 }, (_, i) => {
     const d = new Date()
     d.setDate(d.getDate() + i + 1)
     return d
   })
 
-  // Create payment intent when reaching payment step
-  const initializePayment = async () => {
-    try {
-      const response = await fetch('/api/payments/create-intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: total,
-          customerName: formData.name,
-          customerEmail: formData.email,
-          serviceName: selectedService?.name,
-        }),
-      })
-
-      const data = await response.json()
-      if (data.clientSecret) {
-        setClientSecret(data.clientSecret)
-      }
-    } catch (error) {
-      console.error('Payment initialization failed:', error)
-    }
-  }
-
   const handleSubmit = async () => {
-    if (paymentRequired && !paymentSuccess) {
-      // Payment required but not yet processed
-      setPaymentProcessing(true)
-      // In production, Stripe Elements would handle the actual payment
-      // Here we simulate a successful payment
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      setPaymentSuccess(true)
-      setPaymentProcessing(false)
+    if (!selectedService || !selectedDate || !selectedTime || !formData.name || !formData.email || !formData.phone) {
+      alert('Please fill in all required fields')
+      return
     }
 
-    // Submit booking
-    try {
-      const response = await fetch('/api/booking', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          service: selectedService?.id,
-          serviceName: selectedService?.name,
-          date: selectedDate,
-          time: selectedTime,
-          collection,
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          bike: formData.bike,
-          notes: formData.notes,
-          paid: paymentRequired && paymentSuccess,
-        }),
-      })
+    setSubmitting(true)
 
-      const data = await response.json()
-      
-      if (data.success) {
-        alert('Booking confirmed! Check your email for confirmation.')
-      } else {
-        alert('Booking failed. Please try again.')
-      }
-    } catch (error) {
-      console.error('Booking submission failed:', error)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    try {
+      await fetch(`${supabaseUrl}/rest/v1/bookings`, {
+        method: 'POST',
+        headers: {
+          'apikey': supabaseKey!,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          customer_name: formData.name,
+          customer_email: formData.email,
+          customer_phone: formData.phone,
+          bike_details: formData.bike,
+          booking_date: selectedDate,
+          booking_time: selectedTime,
+          collection_needed: false,
+          notes: formData.notes,
+          status: 'pending'
+        })
+      })
+      setSuccess(true)
+    } catch (err) {
+      console.error('Booking error:', err)
       alert('Booking failed. Please try again.')
     }
+    setSubmitting(false)
+  }
+
+  const total = selectedService?.price || 0
+
+  if (success) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#1A1A2E] to-[#2D2D4A] py-12 px-4">
+        <div className="max-w-2xl mx-auto text-center">
+          <div className="bg-white rounded-2xl p-12 shadow-xl">
+            <div className="text-6xl mb-6">✅</div>
+            <h1 className="text-3xl font-bold text-[#1A1A2E] mb-4">Booking Confirmed!</h1>
+            <p className="text-gray-600 mb-4">
+              Thanks {formData.name}! We&apos;ve received your booking for {selectedService?.name} on {new Date(selectedDate).toLocaleDateString('en-GB')} at {selectedTime}.
+            </p>
+            <p className="text-sm text-gray-500 mb-6">
+              We&apos;ll send a confirmation to {formData.email}
+            </p>
+            <p className="text-orange-600 bg-orange-50 p-3 rounded-lg mb-6">
+              💡 After your service is complete, you can schedule delivery at checkout
+            </p>
+            <a href="/book" className="text-[#FF6B35] hover:underline">Book another service →</a>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1A1A2E] to-[#2D2D4A] py-12 px-4">
       <div className="max-w-2xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Book Your Bike Service</h1>
           <p className="text-gray-400">Bike Clinique LTD</p>
@@ -141,80 +146,85 @@ export default function BookingPage() {
           ))}
         </div>
 
-        {/* Card */}
         <div className="bg-white rounded-2xl p-6 shadow-xl">
+          {/* Step 1: Select Service */}
           {step === 1 && (
-            <>
+            <div>
               <h2 className="text-xl font-semibold mb-4">Select a Service</h2>
-              <div className="space-y-3">
-                {services.map((service) => (
-                  <button
-                    key={service.id}
-                    onClick={() => setSelectedService(service)}
-                    className={`w-full p-4 rounded-lg border-2 text-left transition-colors ${
-                      selectedService?.id === service.id
-                        ? 'border-[#FF6B35] bg-orange-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="font-medium">{service.name}</p>
-                        <p className="text-sm text-gray-500">{service.duration} minutes</p>
+              {loading ? (
+                <div className="space-y-3">
+                  {[1,2,3].map(i => <div key={i} className="h-16 bg-gray-100 rounded-lg animate-pulse" />)}
+                </div>
+              ) : services.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No services available. Please call us.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {services.map((service) => (
+                    <button
+                      key={service.id}
+                      onClick={() => setSelectedService(service)}
+                      className={`w-full p-4 rounded-lg border-2 text-left transition-colors ${
+                        selectedService?.id === service.id 
+                          ? 'border-[#FF6B35] bg-orange-50' 
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="font-medium">{service.name}</p>
+                          <p className="text-sm text-gray-500">{service.duration_minutes} minutes</p>
+                        </div>
+                        <span className="text-xl font-bold text-[#FF6B35]">£{service.price}</span>
                       </div>
-                      <span className="text-lg font-bold text-[#FF6B35]">£{service.price}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
+                    </button>
+                  ))}
+                </div>
+              )}
               <button
-                onClick={() => setStep(2)}
+                onClick={() => selectedService && setStep(2)}
                 disabled={!selectedService}
-                className={`w-full mt-6 py-3 rounded-lg font-medium transition-colors ${
-                  selectedService
-                    ? 'bg-[#FF6B35] text-white hover:bg-[#e55a2b]'
-                    : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                }`}
+                className="w-full mt-6 py-3 rounded-lg font-medium bg-[#FF6B35] text-white hover:bg-[#e55a2b] disabled:bg-gray-200 disabled:text-gray-500"
               >
                 Continue →
               </button>
-            </>
+            </div>
           )}
 
+          {/* Step 2: Select Date & Time */}
           {step === 2 && (
-            <>
-              <h2 className="text-xl font-semibold mb-4">Choose Date & Time</h2>
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Select Date & Time</h2>
               
-              {/* Date Selection */}
               <div className="mb-4">
-                <p className="text-sm font-medium text-gray-700 mb-2">Select Date</p>
-                <div className="flex gap-2 overflow-x-auto pb-2">
-                  {dates.map((date, i) => (
+                <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {dates.slice(0, 8).map((date, i) => (
                     <button
                       key={i}
                       onClick={() => setSelectedDate(date.toISOString().split('T')[0])}
-                      className={`flex-shrink-0 p-3 rounded-lg text-center min-w-[60px] transition-colors ${
+                      className={`p-3 rounded-lg text-center ${
                         selectedDate === date.toISOString().split('T')[0]
                           ? 'bg-[#FF6B35] text-white'
                           : 'bg-gray-100 hover:bg-gray-200'
                       }`}
                     >
-                      <p className="text-xs">{date.toLocaleDateString('en-GB', { weekday: 'short' })}</p>
-                      <p className="text-lg font-bold">{date.getDate()}</p>
+                      <div className="text-xs">{date.toLocaleDateString('en-GB', { weekday: 'short' })}</div>
+                      <div className="font-bold">{date.getDate()}</div>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Time Selection */}
               <div className="mb-4">
-                <p className="text-sm font-medium text-gray-700 mb-2">Select Time</p>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Time</label>
                 <div className="grid grid-cols-4 gap-2">
-                  {timeSlots.map((time) => (
+                  {timeSlots.slice(0, 8).map((time) => (
                     <button
                       key={time}
                       onClick={() => setSelectedTime(time)}
-                      className={`py-2 rounded-lg text-sm transition-colors ${
+                      className={`p-2 rounded-lg text-sm ${
                         selectedTime === time
                           ? 'bg-[#FF6B35] text-white'
                           : 'bg-gray-100 hover:bg-gray-200'
@@ -226,77 +236,59 @@ export default function BookingPage() {
                 </div>
               </div>
 
-              {/* Collection Toggle */}
-              <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={collection}
-                    onChange={(e) => setCollection(e.target.checked)}
-                    className="w-5 h-5 rounded text-[#FF6B35]"
-                  />
-                  <div>
-                    <p className="font-medium">I need collection/delivery</p>
-                    <p className="text-sm text-gray-500">We'll pick up and return your bike</p>
-                  </div>
-                </label>
+              <div className="bg-blue-50 p-4 rounded-lg mb-4">
+                <p className="text-sm text-blue-700">
+                  💡 <strong>Delivery available at checkout</strong> — After your service is complete, you can schedule delivery when paying for your job.
+                </p>
               </div>
 
               <div className="flex gap-3">
-                <button
-                  onClick={() => setStep(1)}
-                  className="flex-1 py-3 rounded-lg font-medium border hover:bg-gray-50"
-                >
-                  Back
-                </button>
+                <button onClick={() => setStep(1)} className="flex-1 py-3 border rounded-lg">Back</button>
                 <button
                   onClick={() => setStep(3)}
                   disabled={!selectedDate || !selectedTime}
-                  className={`flex-1 py-3 rounded-lg font-medium transition-colors ${
-                    selectedDate && selectedTime
-                      ? 'bg-[#FF6B35] text-white hover:bg-[#e55a2b]'
-                      : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                  }`}
+                  className="flex-1 py-3 bg-[#FF6B35] text-white rounded-lg disabled:bg-gray-200"
                 >
                   Continue →
                 </button>
               </div>
-            </>
+            </div>
           )}
 
+          {/* Step 3: Your Details */}
           {step === 3 && (
-            <>
+            <div>
               <h2 className="text-xl font-semibold mb-4">Your Details</h2>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
                   <input
                     type="text"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
                     className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#FF6B35]"
-                    placeholder="Your name"
+                    required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
                   <input
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
                     className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#FF6B35]"
-                    placeholder="your@email.com"
+                    required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
                   <input
                     type="tel"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
                     className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#FF6B35]"
-                    placeholder="+44 7123 456789"
+                    required
                   />
                 </div>
                 <div>
@@ -304,142 +296,92 @@ export default function BookingPage() {
                   <input
                     type="text"
                     value={formData.bike}
-                    onChange={(e) => setFormData({ ...formData, bike: e.target.value })}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#FF6B35]"
+                    onChange={(e) => setFormData({...formData, bike: e.target.value})}
                     placeholder="e.g., Specialized Diverge E5"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#FF6B35]"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                   <textarea
                     value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                    rows={2}
+                    placeholder="Any special requests..."
                     className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#FF6B35]"
-                    rows={3}
-                    placeholder="Any specific issues or requests..."
                   />
-                </div>
-              </div>
-
-              {/* Payment Toggle */}
-              <div className="mt-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={paymentRequired}
-                    onChange={(e) => {
-                      setPaymentRequired(e.target.checked)
-                      if (e.target.checked) initializePayment()
-                    }}
-                    className="w-5 h-5 rounded text-purple-600"
-                  />
-                  <div>
-                    <p className="font-medium">Pay now to secure booking</p>
-                    <p className="text-sm text-gray-500">Reduce no-shows with upfront payment</p>
-                  </div>
-                </label>
-              </div>
-
-              {/* Summary */}
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                <h3 className="font-medium mb-2">Booking Summary</h3>
-                <div className="space-y-1 text-sm">
-                  <p><span className="text-gray-500">Service:</span> {selectedService?.name}</p>
-                  <p><span className="text-gray-500">Date:</span> {selectedDate}</p>
-                  <p><span className="text-gray-500">Time:</span> {selectedTime}</p>
-                  <p><span className="text-gray-500">Collection:</span> {collection ? 'Yes' : 'No'}</p>
-                </div>
-                <div className="mt-2 pt-2 border-t flex justify-between font-bold">
-                  <span>Total</span>
-                  <span className="text-[#FF6B35]">£{total}</span>
                 </div>
               </div>
 
               <div className="flex gap-3 mt-6">
+                <button onClick={() => setStep(2)} className="flex-1 py-3 border rounded-lg">Back</button>
                 <button
-                  onClick={() => setStep(2)}
-                  className="flex-1 py-3 rounded-lg font-medium border hover:bg-gray-50"
+                  onClick={() => setStep(4)}
+                  disabled={!formData.name || !formData.email || !formData.phone}
+                  className="flex-1 py-3 bg-[#FF6B35] text-white rounded-lg disabled:bg-gray-200"
                 >
-                  Back
-                </button>
-                <button
-                  onClick={() => {
-                    if (paymentRequired) {
-                      setStep(4)
-                      initializePayment()
-                    } else {
-                      handleSubmit()
-                    }
-                  }}
-                  className="flex-1 py-3 rounded-lg font-medium bg-[#FF6B35] text-white hover:bg-[#e55a2b]"
-                >
-                  {paymentRequired ? 'Continue to Payment →' : 'Confirm Booking'}
+                  Review →
                 </button>
               </div>
-            </>
+            </div>
           )}
 
+          {/* Step 4: Confirm */}
           {step === 4 && (
-            <>
-              <h2 className="text-xl font-semibold mb-4">Payment</h2>
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Confirm Booking</h2>
               
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
-                  💳
+              <div className="bg-gray-50 rounded-xl p-4 mb-4">
+                <div className="flex justify-between py-2 border-b">
+                  <span className="text-gray-600">Service</span>
+                  <span className="font-medium">{selectedService?.name}</span>
                 </div>
-                <p className="text-gray-600">Secure payment for £{total}</p>
+                <div className="flex justify-between py-2 border-b">
+                  <span className="text-gray-600">Date</span>
+                  <span className="font-medium">{selectedDate && new Date(selectedDate).toLocaleDateString('en-GB')}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b">
+                  <span className="text-gray-600">Time</span>
+                  <span className="font-medium">{selectedTime}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b">
+                  <span className="text-gray-600">Name</span>
+                  <span className="font-medium">{formData.name}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b">
+                  <span className="text-gray-600">Email</span>
+                  <span className="font-medium">{formData.email}</span>
+                </div>
+                <div className="flex justify-between py-2">
+                  <span className="text-gray-600">Phone</span>
+                  <span className="font-medium">{formData.phone}</span>
+                </div>
+                <div className="flex justify-between pt-4 mt-4 border-t">
+                  <span className="font-semibold">Total</span>
+                  <span className="text-2xl font-bold text-[#FF6B35]">£{total}</span>
+                </div>
               </div>
 
-              {/* Payment form placeholder - in production use Stripe Elements */}
-              <div className="p-4 border rounded-lg mb-4">
-                <p className="text-sm text-gray-500 mb-2">Card details</p>
-                <div className="h-10 bg-gray-50 rounded flex items-center px-3">
-                  <span className="text-gray-400">•••• •••• •••• 4242</span>
-                </div>
+              <div className="bg-blue-50 p-4 rounded-lg mb-4">
+                <p className="text-sm text-blue-700">
+                  🚴 Delivery can be scheduled after your service is complete — you&apos;ll be able to book a delivery slot when you checkout and pay for your job.
+                </p>
               </div>
 
-              {paymentProcessing && (
-                <div className="text-center py-4">
-                  <div className="animate-spin w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full mx-auto mb-2" />
-                  <p className="text-gray-600">Processing payment...</p>
-                </div>
-              )}
-
-              {paymentSuccess && (
-                <div className="text-center py-4">
-                  <span className="text-4xl">✅</span>
-                  <p className="text-green-600 font-medium">Payment successful!</p>
-                </div>
-              )}
-
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={() => setStep(3)}
-                  className="flex-1 py-3 rounded-lg font-medium border hover:bg-gray-50"
-                >
-                  Back
-                </button>
+              <div className="flex gap-3">
+                <button onClick={() => setStep(3)} className="flex-1 py-3 border rounded-lg">Back</button>
                 <button
                   onClick={handleSubmit}
-                  disabled={paymentProcessing}
-                  className={`flex-1 py-3 rounded-lg font-medium transition-colors ${
-                    paymentProcessing
-                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                      : 'bg-purple-600 text-white hover:bg-purple-700'
-                  }`}
+                  disabled={submitting}
+                  className="flex-1 py-3 bg-[#FF6B35] text-white rounded-lg hover:bg-[#e55a2b] disabled:bg-gray-200"
                 >
-                  {paymentProcessing ? 'Processing...' : paymentSuccess ? 'Complete Booking' : `Pay £${total}`}
+                  {submitting ? 'Booking...' : 'Confirm Booking'}
                 </button>
               </div>
-
-              <p className="text-xs text-gray-500 text-center mt-4">
-                🔒 Secured by Stripe
-              </p>
-            </>
+            </div>
           )}
         </div>
 
-        {/* Footer */}
         <p className="text-center text-gray-500 text-sm mt-6">
           Need help? Call us at +44 20 7946 0000
         </p>

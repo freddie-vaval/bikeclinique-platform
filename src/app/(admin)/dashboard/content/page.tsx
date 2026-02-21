@@ -23,6 +23,7 @@ export default function ContentBuilderPage() {
   const [contentType, setContentType] = useState<ContentType>('social')
   const [prompt, setPrompt] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
+  const [aiConfigured, setAiConfigured] = useState<boolean | null>(null)
   const [results, setResults] = useState<GeneratedContent[]>([
     {
       id: '1',
@@ -45,13 +46,47 @@ export default function ContentBuilderPage() {
     
     setIsGenerating(true)
     
-    // Simulate AI generation (replace with Perplexity/OpenAI API)
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    // Try to call AI API (Perplexity), fallback to local generation
+    let generatedContent = ''
+    
+    try {
+      // Check if AI is configured on first run
+      if (aiConfigured === null) {
+        const checkResponse = await fetch('/api/content/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: 'test', type: 'social' })
+        })
+        setAiConfigured(checkResponse.ok)
+      }
+      
+      // Attempt to call AI API if configured
+      if (aiConfigured) {
+        const response = await fetch('/api/content/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt, type: contentType })
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          generatedContent = data.content
+        } else {
+          throw new Error('API not configured')
+        }
+      } else {
+        throw new Error('AI not configured')
+      }
+    } catch {
+      // Fallback to local intelligent generation
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      generatedContent = getSampleContent(prompt, contentType)
+    }
     
     const newContent: GeneratedContent = {
       id: Date.now().toString(),
       title: prompt,
-      body: `✨ Here's AI-generated ${contentTypeConfig[contentType].label.toLowerCase()} about "${prompt}":\n\n${getSampleContent(prompt, contentType)}`,
+      body: generatedContent,
       type: contentType,
       createdAt: 'Just now',
     }
@@ -68,7 +103,12 @@ export default function ContentBuilderPage() {
           <h1 className="text-2xl font-bold text-[#1A1A2E]">AI Content Builder</h1>
           <p className="text-sm text-gray-500">Generate marketing content with AI</p>
         </div>
-        <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">🧠 AI Powered</span>
+        <div className="flex items-center gap-2">
+          {aiConfigured === false && (
+            <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs">Local Mode</span>
+          )}
+          <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">🧠 AI Powered</span>
+        </div>
       </div>
 
       {/* Generator Card */}
@@ -126,7 +166,7 @@ export default function ContentBuilderPage() {
         <div className="mt-4">
           <p className="text-xs text-gray-500 mb-2">Quick ideas:</p>
           <div className="flex flex-wrap gap-2">
-            {['Spring service promo', 'How to clean your bike', 'New winter gear', 'Bike safety tips'].map((idea) => (
+            {['Spring service promo', 'How to clean your bike', 'New winter gear', 'Bike safety tips', 'Electric bike maintenance', 'Mountain bike service'].map((idea) => (
               <button
                 key={idea}
                 onClick={() => setPrompt(idea)}
@@ -154,7 +194,10 @@ export default function ContentBuilderPage() {
             <h3 className="font-semibold text-[#1A1A2E] mb-2">{content.title}</h3>
             <pre className="text-sm text-gray-600 whitespace-pre-wrap font-sans">{content.body}</pre>
             <div className="flex gap-2 mt-4 pt-4 border-t">
-              <button className="px-4 py-2 text-sm bg-[#FF6B35] text-white rounded-lg hover:bg-[#e55a2b]">
+              <button 
+                onClick={() => navigator.clipboard.writeText(content.body)}
+                className="px-4 py-2 text-sm bg-[#FF6B35] text-white rounded-lg hover:bg-[#e55a2b]"
+              >
                 Copy
               </button>
               <button className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50">
@@ -171,12 +214,72 @@ export default function ContentBuilderPage() {
   )
 }
 
+// Intelligent local content generation with topic-specific templates
 function getSampleContent(prompt: string, type: ContentType): string {
-  const samples: Record<ContentType, string> = {
-    blog: `As cycling enthusiasts, we often get asked: "How do I know if my bike needs servicing?" Here\'s the truth — waiting until something breaks is never fun.\n\n🔧 Squeaky brakes? That\'s not normal.\n⚙️ Gear skipping? Time for adjustment.\n🛞 Wobbly wheels? Could need truing.\n\nRegular maintenance saves money long-term and keeps you safe. Book a checkup today!`,
-    social: `🚴 ${prompt}?\n\nWe\'ve got you covered! Our expert mechanics are ready to help.\n\n👇 DM us to book or ask questions!`,
-    email: `Hi there!\n\nThought you\'d be interested in our ${prompt} services!\n\nWe offer:\n✅ Expert mechanics\n✅ Quick turnaround\n✅ Fair pricing\n\nBook online or reply to this email!\n\nBest,\nThe Bike Clinique Team`,
-    caption: `🚴 ${prompt} 🔧\n\nTag a friend who needs to see this! 👇\n\n#BikeLife #BikeRepair #CyclingUK`,
+  const topic = prompt.toLowerCase()
+  
+  switch (type) {
+    case 'blog':
+      return generateBlogContent(topic, prompt)
+    case 'social':
+      return generateSocialContent(topic, prompt)
+    case 'email':
+      return generateEmailContent(topic, prompt)
+    case 'caption':
+      return generateCaptionContent(topic, prompt)
+    default:
+      return generateSocialContent(topic, prompt)
   }
-  return samples[type]
+}
+
+function generateBlogContent(topic: string, originalPrompt: string): string {
+  if (topic.includes('spring')) {
+    return `🌷 Is Your Bike Ready for Spring?\n\nAfter months of winter storage, your bike is probably due for some attention. Here's what to check:\n\n1. **Tires** - Check for cracks, wear, and inflate to proper pressure\n2. **Chain** - Clean and lubricate if rusty or dry\n3. **Brakes** - Test responsiveness, check pad wear\n4. **Gears** - Index adjustment may be needed after winter\n5. **Lights** - Ensure batteries work if using lights\n\nDon't forget: Book your spring service early! We get busy when the weather warms up.\n\nReady to ride? 👉 Book online today!\n\n#BikeService #SpringCycling #BikeMaintenance`
+  }
+  
+  if (topic.includes('winter') || topic.includes('storage')) {
+    return `❄️ Winter Bike Storage Tips\n\nProper storage extends your bike's life:\n\n• **Clean first** - Remove dirt and grime\n• **Dry thoroughly** - Prevent rust\n• **Lubricate chain** - Use wet lube for moisture\n• **Inflate tires** - Prevents sidewall cracks\n• **Remove batteries** - From lights and computers\n• **Store indoors** - Climate controlled is best\n\nPro tip: Consider a professional winter service before storing - we'll prep it right!\n\nQuestions? Reach out! 🚴`
+  }
+  
+  if (topic.includes('clean')) {
+    return `🧽 How to Clean Your Bike Properly\n\nA clean bike is a happy bike! Here's how to do it right:\n\n**What you'll need:**\n- Bucket of warm soapy water\n- Soft brushes\n- Degreaser\n- Clean rags\n- Chain lube\n\n**Steps:**\n1. Rinse bike with water\n2. Apply soapy water, scrub frame\n3. Use degreaser on chain & gears\n4. Rinse thoroughly\n5. Dry completely\n6. Lubricate chain\n\n**Pro tip:** Clean your bike monthly for best performance!\n\n#BikeMaintenance #BikeCleaning #CyclingTips`
+  }
+  
+  if (topic.includes('safety') || topic.includes('tips')) {
+    return `🛡️ Essential Bike Safety Tips\n\nStay safe on every ride with these fundamentals:\n\n**Before You Ride:**\n✅ Check tire pressure\n✅ Test brakes work\n✅ Ensure lights are working\n✅ Look for loose bolts\n\n**On the Road:**\n🚦 Follow traffic laws\n👀 Be aware of surroundings\n🔔 Use your bell\n🛑 Signal your turns\n\n**Regular Maintenance = Safety:**\nDon't skip service appointments - they're about your safety!\n\n#BikeSafety #CyclingTips #RideSafe`
+  }
+  
+  return `🚴 ${originalPrompt}\n\nRegular bike maintenance is key to:\n✅ Safer rides\n✅ Longer component life\n✅ Better performance\n✅ Avoiding costly repairs\n\nOur expert mechanics are here to help keep you rolling!\n\nBook your service today 👉`
+}
+
+function generateSocialContent(topic: string, originalPrompt: string): string {
+  if (topic.includes('service') || topic.includes('promo') || topic.includes('spring') || topic.includes('discount')) {
+    return `🚴 Spring Service Special!\n\nGet your bike ready for the new season!\n\n✅ Full safety check\n✅ Gear & brake adjustment\n✅ Chain clean & lube\n\nBook now and save 20%!\n\n🔗 Link in bio\n\n#BikeService #SpringRide #CyclingUK`
+  }
+  
+  if (topic.includes('tips') || topic.includes('how to') || topic.includes('safety')) {
+    return `💡 ${originalPrompt}\n\nHere's what you need to know 👇\n\nTag a friend who rides! 🚴\n\n#BikeTips #Cycling`
+  }
+  
+  if (topic.includes('electric') || topic.includes('e-bike')) {
+    return `⚡ E-Bike Service Specialists\n\nWe service all e-bike brands:\n\n✅ Battery health checks\n✅ Motor diagnostics\n✅ Display systems\n✅ Regular maintenance\n\nDon't trust your e-bike to just anyone!\n\n👇 DM to book\n\n#EBike #ElectricBike #BikeService`
+  }
+  
+  return `🚴 ${originalPrompt}\n\n👇 DM us to book or ask questions!\n\n#BikeLife #BikeShop`
+}
+
+function generateEmailContent(topic: string, originalPrompt: string): string {
+  const subject = topic.includes('spring') ? 'Spring Service Special - 20% Off!' 
+    : topic.includes('promo') || topic.includes('discount') ? 'Special Offer Just for You!'
+    : `${originalPrompt} - Book Now!`
+    
+  return `Subject: ${subject}\n\nHi there!\n\nGreat news - we've got ${originalPrompt} ready for you!\n\nWhy choose BikeClinique:\n✅ Expert mechanics with years of experience\n✅ Quick turnaround times\n✅ Fair, transparent pricing\n✅ Free safety checks with every service\n\n🌷 Spring is the perfect time to get your bike serviced!\n\nBook online now: bikeclinique-platform.vercel.app/book\n\nQuestions? Just reply to this email!\n\nHappy cycling!\nThe BikeClinique Team 🚴`
+}
+
+function generateCaptionContent(topic: string, originalPrompt: string): string {
+  if (topic.includes('service') || topic.includes('repair')) {
+    return `🔧 ${originalPrompt} 🔧\n\nYour bike deserves pro care!\n\n👉 Book via link in bio\n\nTag a friend who needs this! 👇\n\n#BikeTok #BikeRepair #CycleRepair #CyclingUK #BikeLife`
+  }
+  
+  return `🚴 ${originalPrompt} 🚴\n\nYour bike deserves pro care!\n\n👉 Book via link in bio\n\nTag a friend who needs to see this! 👇\n\n#BikeTok #BikeRepair #CycleRepair #CyclingUK #BikeLife`
 }

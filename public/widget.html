@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Your Bike Service</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .bikeclinique-widget { font-family: system-ui, -apple-system, sans-serif; }
+    .bikeclinique-widget * { box-sizing: border-box; }
+  </style>
+</head>
+<body class="bikeclinique-widget">
+  <div id="bikeclinique-booking-widget" style="max-width: 400px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #1A1A2E 0%, #2D2D4A 100%); min-height: 400px; border-radius: 16px;">
+    <!-- Widget Container -->
+    <div id="bc-widget-content">
+      <!-- Content loaded via JavaScript -->
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'https://sqwvmvkznzxbabgeqswq.supabase.co';
+    const API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxd3Ztdmt6bnp4YmFiZ2Vxc3dxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDY2MTUsImV4cCI6MjA4NjU4MjYxNX0.W-31st3bx2T_DulqYGfBT2otx7VYoP3wNahGwWGfXf8';
+
+    let state = {
+      step: 1,
+      services: [],
+      selectedService: null,
+      selectedDate: '',
+      selectedTime: '',
+      formData: { name: '', email: '', phone: '', bike: '', notes: '' },
+      loading: true,
+      submitting: false,
+      success: false
+    };
+
+    const timeSlots = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'];
+
+    function render() {
+      const container = document.getElementById('bc-widget-content');
+      
+      if (state.success) {
+        container.innerHTML = `
+          <div class="text-center text-white">
+            <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
+            <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 12px;">Booking Confirmed!</h2>
+            <p style="opacity: 0.8; margin-bottom: 8px;">Thanks ${state.formData.name}!</p>
+            <p style="opacity: 0.6; font-size: 14px;">We've sent a confirmation to ${state.formData.email}</p>
+            <button onclick="resetWidget()" style="margin-top: 20px; color: #FF6B35; background: none; border: none; cursor: pointer; text-decoration: underline;">Book another service</button>
+          </div>
+        `;
+        return;
+      }
+
+      if (state.loading) {
+        container.innerHTML = `<div style="text-align: center; color: white; padding: 40px;">Loading...</div>`;
+        return;
+      }
+
+      let content = '';
+
+      // Header
+      content += `
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h1 style="color: white; font-size: 20px; font-weight: bold;">🚴 Book Your Service</h1>
+          <div style="display: flex; justify-content: center; gap: 8px; margin-top: 12px;">
+            ${[1,2,3,4].map(s => `
+              <div style="width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; ${state.step >= s ? 'background: #FF6B35; color: white;' : 'background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.5);'}">${s}</div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      // Step 1: Select Service
+      if (state.step === 1) {
+        content += `<div style="background: white; border-radius: 12px; padding: 16px;">`;
+        state.services.forEach(service => {
+          content += `
+            <button onclick="selectService('${service.id}')" style="width: 100%; padding: 12px; margin-bottom: 8px; border: 2px solid ${state.selectedService?.id === service.id ? '#FF6B35' : '#e5e7eb'}; border-radius: 8px; background: ${state.selectedService?.id === service.id ? '#fff7ed' : 'white'}; cursor: pointer; text-align: left; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-weight: 600;">${service.name}</div>
+                <div style="font-size: 12px; color: #6b7280;">${service.duration_minutes} mins</div>
+              </div>
+              <div style="font-weight: bold; color: #FF6B35;">£${service.price}</div>
+            </button>
+          `;
+        });
+        content += `
+          <button onclick="nextStep(2)" ${!state.selectedService ? 'disabled' : ''} style="width: 100%; padding: 12px; background: ${state.selectedService ? '#FF6B35' : '#d1d5db'}; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: ${state.selectedService ? 'pointer' : 'not-allowed'};">Continue →</button>
+        </div>`;
+      }
+
+      // Step 2: Date & Time
+      if (state.step === 2) {
+        const dates = Array.from({length: 7}, (_, i) => {
+          const d = new Date();
+          d.setDate(d.getDate() + i + 1);
+          return d;
+        });
+        
+        content += `<div style="background: white; border-radius: 12px; padding: 16px;">`;
+        content += `<h3 style="font-weight: 600; margin-bottom: 12px;">Select Date</h3>`;
+        content += `<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px;">`;
+        dates.forEach((date, i) => {
+          const dateStr = date.toISOString().split('T')[0];
+          content += `
+            <button onclick="selectDate('${dateStr}')" style="padding: 8px; border-radius: 8px; border: 1px solid ${state.selectedDate === dateStr ? '#FF6B35' : '#e5e7eb'}; background: ${state.selectedDate === dateStr ? '#fff7ed' : 'white'}; cursor: pointer;">
+              <div style="font-size: 10px; color: #6b7280;">${date.toLocaleDateString('en', {weekday: 'short'})}</div>
+              <div style="font-weight: bold;">${date.getDate()}</div>
+            </button>
+          `;
+        });
+        content += `</div>`;
+        
+        if (state.selectedDate) {
+          content += `<h3 style="font-weight: 600; margin-bottom: 12px;">Select Time</h3>`;
+          content += `<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px;">`;
+          timeSlots.forEach(time => {
+            content += `
+              <button onclick="selectTime('${time}')" style="padding: 8px; border-radius: 8px; border: 1px solid ${state.selectedTime === time ? '#FF6B35' : '#e5e7eb'}; background: ${state.selectedTime === time ? '#fff7ed' : 'white'}; cursor: pointer; font-size: 14px;">${time}</button>
+            `;
+          });
+          content += `</div>`;
+        }
+
+        content += `
+          <div style="display: flex; gap: 8px;">
+            <button onclick="nextStep(1)" style="flex: 1; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; background: white; cursor: pointer;">Back</button>
+            <button onclick="nextStep(3)" ${!state.selectedDate || !state.selectedTime ? 'disabled' : ''} style="flex: 1; padding: 12px; background: ${state.selectedDate && state.selectedTime ? '#FF6B35' : '#d1d5db'}; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: ${state.selectedDate && state.selectedTime ? 'pointer' : 'not-allowed'};">Continue →</button>
+          </div>
+        </div>`;
+      }
+
+      // Step 3: Details
+      if (state.step === 3) {
+        content += `<div style="background: white; border-radius: 12px; padding: 16px;">`;
+        const fields = [
+          {key: 'name', label: 'Name', type: 'text', required: true},
+          {key: 'email', label: 'Email', type: 'email', required: true},
+          {key: 'phone', label: 'Phone', type: 'tel', required: true},
+          {key: 'bike', label: 'Bike Details', type: 'text', required: false},
+        ];
+        fields.forEach(field => {
+          content += `
+            <div style="margin-bottom: 12px;">
+              <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px;">${field.label} ${field.required ? '*' : ''}</label>
+              <input type="${field.type}" value="${state.formData[field.key]}" onchange="updateForm('${field.key}', this.value)" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+            </div>
+          `;
+        });
+        content += `
+          <div style="display: flex; gap: 8px;">
+            <button onclick="nextStep(2)" style="flex: 1; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; background: white; cursor: pointer;">Back</button>
+            <button onclick="nextStep(4)" ${!state.formData.name || !state.formData.email || !state.formData.phone ? 'disabled' : ''} style="flex: 1; padding: 12px; background: ${state.formData.name && state.formData.email && state.formData.phone ? '#FF6B35' : '#d1d5db'}; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: ${state.formData.name && state.formData.email && state.formData.phone ? 'pointer' : 'not-allowed'};">Review →</button>
+          </div>
+        </div>`;
+      }
+
+      // Step 4: Confirm
+      if (state.step === 4) {
+        content += `<div style="background: white; border-radius: 12px; padding: 16px;">`;
+        content += `
+          <div style="background: #f9fafb; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 14px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span style="color: #6b7280;">Service</span><span style="font-weight: 600;">${state.selectedService?.name}</span></div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span style="color: #6b7280;">Date</span><span style="font-weight: 600;">${state.selectedDate}</span></div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span style="color: #6b7280;">Time</span><span style="font-weight: 600;">${state.selectedTime}</span></div>
+            <div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid #e5e7eb;"><span style="font-weight: bold;">Total</span><span style="font-weight: bold; color: #FF6B35; font-size: 18px;">£${state.selectedService?.price}</span></div>
+          </div>
+        `;
+        content += `
+          <div style="display: flex; gap: 8px;">
+            <button onclick="nextStep(3)" style="flex: 1; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; background: white; cursor: pointer;">Back</button>
+            <button onclick="submitBooking()" ${state.submitting ? 'disabled' : ''} style="flex: 1; padding: 12px; background: #FF6B35; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">${state.submitting ? 'Booking...' : 'Confirm'}</button>
+          </div>
+        </div>`;
+      }
+
+      container.innerHTML = content;
+    }
+
+    async function loadServices() {
+      try {
+        const res = await fetch(`${API_URL}/rest/v1/services?select=*&is_active=eq.true&order=name`, {
+          headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}` }
+        });
+        state.services = await res.json();
+      } catch (e) {
+        state.services = [
+          {id: '1', name: 'Full Service', price: 150, duration_minutes: 90},
+          {id: '2', name: 'Gear Tune', price: 45, duration_minutes: 30},
+          {id: '3', name: 'Brake Service', price: 55, duration_minutes: 30},
+        ];
+      }
+      state.loading = false;
+      render();
+    }
+
+    function selectService(id) {
+      state.selectedService = state.services.find(s => s.id === id);
+      render();
+    }
+
+    function selectDate(date) {
+      state.selectedDate = date;
+      render();
+    }
+
+    function selectTime(time) {
+      state.selectedTime = time;
+      render();
+    }
+
+    function updateForm(key, value) {
+      state.formData[key] = value;
+      render();
+    }
+
+    function nextStep(step) {
+      state.step = step;
+      render();
+    }
+
+    async function submitBooking() {
+      state.submitting = true;
+      render();
+      
+      try {
+        await fetch(`${API_URL}/rest/v1/bookings`, {
+          method: 'POST',
+          headers: {
+            'apikey': API_KEY,
+            'Authorization': `Bearer ${API_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
+            customer_name: state.formData.name,
+            customer_email: state.formData.email,
+            customer_phone: state.formData.phone,
+            bike_details: state.formData.bike,
+            booking_date: state.selectedDate,
+            booking_time: state.selectedTime,
+            status: 'pending'
+          })
+        });
+      } catch (e) {
+        console.error('Booking error:', e);
+      }
+      
+      state.success = true;
+      state.submitting = false;
+      render();
+    }
+
+    function resetWidget() {
+      state = {
+        step: 1,
+        services: state.services,
+        selectedService: null,
+        selectedDate: '',
+        selectedTime: '',
+        formData: { name: '', email: '', phone: '', bike: '', notes: '' },
+        loading: false,
+        submitting: false,
+        success: false
+      };
+      render();
+    }
+
+    // Initialize
+    loadServices();
+  </script>
+</body>
+</html>

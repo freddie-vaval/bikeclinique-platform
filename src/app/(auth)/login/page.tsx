@@ -19,6 +19,14 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
+    // Demo bypass
+    if (email === 'demo@bikeclinique.co.uk' && password === 'demopassword') {
+      // Set cookie for middleware
+      document.cookie = 'demo_user=true; path=/; max-age=86400'
+      window.location.href = '/dashboard'
+      return
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
