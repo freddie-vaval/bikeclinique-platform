@@ -1,523 +1,557 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
+import { useState, useEffect } from 'react';
+import { createClient } from '@/utils/supabase/client';
 
 interface Collection {
-  id: string
-  type: string
-  customer_name: string
-  customer_phone: string
-  address: string
-  time_slot: string
-  scheduled_date: string
-  status: string
-  job_id: string
-  notes: string
-  created_at: string
+  id: string;
+  customer_id: string;
+  job_id: string;
+  collection_type: 'pickup' | 'delivery';
+  scheduled_date: string;
+  scheduled_time: string;
+  address_line1: string;
+  address_line2?: string;
+  city: string;
+  postcode: string;
+  contact_name: string;
+  contact_phone: string;
+  status: 'scheduled' | 'en_route' | 'completed' | 'cancelled';
+  notes?: string;
+  driver_id?: string;
+  completed_at?: string;
+  created_at: string;
 }
 
-const statusFlow = ['pending', 'driver_assigned', 'in_transit', 'collected', 'delivered', 'completed']
-
-const statusLabels: Record<string, string> = {
-  pending: 'Pending',
-  driver_assigned: 'Driver Assigned',
-  in_transit: 'In Transit',
-  collected: 'Bike Collected',
-  delivered: 'Delivered',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
 }
 
-const statusColors: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-700 border-yellow-300',
-  driver_assigned: 'bg-blue-100 text-blue-700 border-blue-300',
-  in_transit: 'bg-purple-100 text-purple-700 border-purple-300',
-  collected: 'bg-orange-100 text-orange-700 border-orange-300',
-  delivered: 'bg-green-100 text-green-700 border-green-300',
-  completed: 'bg-gray-100 text-gray-700 border-gray-300',
-  cancelled: 'bg-red-100 text-red-700 border-red-300',
+interface Technician {
+  id: string;
+  name: string;
+  role: string;
+  status: string;
 }
-
-const timeSlots = [
-  { label: 'Morning (8-12)', value: '08:00-12:00' },
-  { label: 'Midday (12-14)', value: '12:00-14:00' },
-  { label: 'Afternoon (14-18)', value: '14:00-18:00' },
-  { label: 'Evening (18-20)', value: '18:00-20:00' },
-]
 
 export default function CollectionsPage() {
-  const [collections, setCollections] = useState<Collection[]>([])
-  const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('all')
-  const [view, setView] = useState<'list' | 'kanban'>('list')
-  const [showModal, setShowModal] = useState(false)
-  const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null)
+  const supabase = createClient();
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [technicians, setTechnicians] = useState<Technician[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
+  
   const [formData, setFormData] = useState({
-    type: 'collection',
-    customer_name: '',
-    customer_phone: '',
-    address: '',
-    time_slot: '',
-    scheduled_date: new Date().toISOString().split('T')[0],
-    notes: ''
-  })
+    customer_id: '',
+    collection_type: 'pickup' as 'pickup' | 'delivery',
+    scheduled_date: '',
+    scheduled_time: '',
+    address_line1: '',
+    address_line2: '',
+    city: '',
+    postcode: '',
+    contact_name: '',
+    contact_phone: '',
+    status: 'scheduled' as 'scheduled' | 'en_route' | 'completed' | 'cancelled',
+    notes: '',
+    driver_id: ''
+  });
 
   useEffect(() => {
-    fetchCollections()
-  }, [])
+    fetchData();
+  }, []);
 
-  const fetchCollections = async () => {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  async function fetchData() {
+    setLoading(true);
+    const [collectionsRes, customersRes, techniciansRes] = await Promise.all([
+      supabase.from('collections').select('*').order('scheduled_date', { ascending: true }),
+      supabase.from('customers').select('id, name, email, phone').order('name'),
+      supabase.from('technicians').select('*').order('name')
+    ]);
 
-    const res = await fetch(`${supabaseUrl}/rest/v1/collections?select=*&order=scheduled_date,time_slot`, {
-      headers: { 'apikey': supabaseKey!, 'Authorization': `Bearer ${supabaseKey}` }
-    })
-    setCollections(await res.json() || [])
-    setLoading(false)
+    if (collectionsRes.data) setCollections(collectionsRes.data);
+    if (customersRes.data) setCustomers(customersRes.data);
+    if (techniciansRes.data) setTechnicians(techniciansRes.data);
+    setLoading(false);
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
     
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const data = {
+      ...formData,
+      customer_id: formData.customer_id || null,
+      driver_id: formData.driver_id || null,
+      job_id: null
+    };
 
-    await fetch(`${supabaseUrl}/rest/v1/collections`, {
-      method: 'POST',
-      headers: {
-        'apikey': supabaseKey!,
-        'Authorization': `Bearer ${supabaseKey}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({
-        type: formData.type,
-        customer_name: formData.customer_name,
-        customer_phone: formData.customer_phone,
-        address: formData.address,
-        time_slot: formData.time_slot,
-        scheduled_date: formData.scheduled_date,
-        notes: formData.notes,
-        status: 'pending'
+    if (editingCollection) {
+      const { error } = await supabase
+        .from('collections')
+        .update(data)
+        .eq('id', editingCollection.id);
+      
+      if (!error) {
+        fetchData();
+        closeModal();
+      }
+    } else {
+      const { error } = await supabase
+        .from('collections')
+        .insert([data]);
+
+      if (!error) {
+        fetchData();
+        closeModal();
+      }
+    }
+  }
+
+  async function updateStatus(id: string, status: string) {
+    const { error } = await supabase
+      .from('collections')
+      .update({ 
+        status,
+        completed_at: status === 'completed' ? new Date().toISOString() : null
       })
-    })
+      .eq('id', id);
 
-    setShowModal(false)
-    setFormData({
-      type: 'collection',
-      customer_name: '',
-      customer_phone: '',
-      address: '',
-      time_slot: '',
-      scheduled_date: new Date().toISOString().split('T')[0],
-      notes: ''
-    })
-    fetchCollections()
+    if (!error) fetchData();
   }
 
-  const updateStatus = async (id: string, status: string) => {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  async function deleteCollection(id: string) {
+    if (!confirm('Delete this collection/delivery?')) return;
+    
+    const { error } = await supabase
+      .from('collections')
+      .delete()
+      .eq('id', id);
 
-    await fetch(`${supabaseUrl}/rest/v1/collections?id=eq.${id}`, {
-      method: 'PATCH',
-      headers: {
-        'apikey': supabaseKey!,
-        'Authorization': `Bearer ${supabaseKey}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({ status })
-    })
-    fetchCollections()
-    setSelectedCollection(null)
+    if (!error) fetchData();
   }
 
-  const filtered = collections.filter(c => {
-    if (filter === 'all') return true
-    if (filter === 'collection') return c.type === 'collection'
-    if (filter === 'delivery') return c.type === 'delivery'
-    return c.status === filter
-  })
+  function openModal(collection?: Collection) {
+    if (collection) {
+      setEditingCollection(collection);
+      setFormData({
+        customer_id: collection.customer_id || '',
+        collection_type: collection.collection_type,
+        scheduled_date: collection.scheduled_date,
+        scheduled_time: collection.scheduled_time,
+        address_line1: collection.address_line1,
+        address_line2: collection.address_line2 || '',
+        city: collection.city,
+        postcode: collection.postcode,
+        contact_name: collection.contact_name,
+        contact_phone: collection.contact_phone,
+        status: collection.status,
+        notes: collection.notes || '',
+        driver_id: collection.driver_id || ''
+      });
+    } else {
+      setEditingCollection(null);
+      setFormData({
+        customer_id: '',
+        collection_type: 'pickup',
+        scheduled_date: new Date().toISOString().split('T')[0],
+        scheduled_time: '10:00',
+        address_line1: '',
+        address_line2: '',
+        city: '',
+        postcode: '',
+        contact_name: '',
+        contact_phone: '',
+        status: 'scheduled',
+        notes: '',
+        driver_id: ''
+      });
+    }
+    setShowModal(true);
+  }
 
-  const today = new Date().toISOString().split('T')[0]
-  const todayCollections = collections.filter(c => c.scheduled_date === today)
-  
-  const pending = collections.filter(c => c.status === 'pending').length
-  const inTransit = collections.filter(c => c.status === 'in_transit').length
-  const completed = collections.filter(c => c.status === 'completed').length
+  function closeModal() {
+    setShowModal(false);
+    setEditingCollection(null);
+  }
+
+  function getCustomerName(customerId?: string) {
+    if (!customerId) return '—';
+    const customer = customers.find(c => c.id === customerId);
+    return customer?.name || 'Unknown';
+  }
+
+  function getDriverName(driverId?: string) {
+    if (!driverId) return 'Unassigned';
+    const driver = technicians.find(t => t.id === driverId);
+    return driver?.name || 'Unknown';
+  }
+
+  function getStatusColor(status: string) {
+    switch (status) {
+      case 'scheduled': return 'bg-blue-100 text-blue-800';
+      case 'en_route': return 'bg-yellow-100 text-yellow-800';
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  }
+
+  // Group collections by date
+  const groupedCollections = collections.reduce((acc, col) => {
+    const date = col.scheduled_date;
+    if (!acc[date]) acc[date] = [];
+    acc[date].push(col);
+    return acc;
+  }, {} as Record<string, Collection[]>);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#1A1A2E]">Collections & Deliveries</h1>
-          <p className="text-sm text-gray-500">Manage bike pickups and drop-offs</p>
+          <h1 className="text-2xl font-bold text-gray-900">Collections & Deliveries</h1>
+          <p className="text-gray-600">Manage pickup and delivery schedules</p>
         </div>
-        <div className="flex gap-3">
-          <div className="flex bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => setView('list')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${view === 'list' ? 'bg-white shadow text-[#1A1A2E]' : 'text-gray-500'}`}
-            >
-              📋 List
-            </button>
-            <button
-              onClick={() => setView('kanban')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${view === 'kanban' ? 'bg-white shadow text-[#1A1A2E]' : 'text-gray-500'}`}
-            >
-              📊 Board
-            </button>
-          </div>
-          <button 
-            onClick={() => setShowModal(true)}
-            className="bg-[#FF6B35] text-white px-4 py-2 rounded-lg hover:bg-[#e55a2b] transition-colors flex items-center gap-2"
-          >
-            <span>+</span> Schedule Collection
-          </button>
-        </div>
+        <button
+          onClick={() => openModal()}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          New Collection/Delivery
+        </button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">📋</div>
-            <div>
-              <p className="text-2xl font-bold text-[#1A1A2E]">{pending}</p>
-              <p className="text-xs text-gray-500">Pending</p>
-            </div>
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="text-2xl font-bold text-gray-900">{collections.length}</div>
+          <div className="text-sm text-gray-600">Total</div>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">🚚</div>
-            <div>
-              <p className="text-2xl font-bold text-[#1A1A2E]">{inTransit}</p>
-              <p className="text-xs text-gray-500">In Transit</p>
-            </div>
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="text-2xl font-bold text-blue-600">
+            {collections.filter(c => c.status === 'scheduled').length}
           </div>
+          <div className="text-sm text-gray-600">Scheduled</div>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">✅</div>
-            <div>
-              <p className="text-2xl font-bold text-[#1A1A2E]">{completed}</p>
-              <p className="text-xs text-gray-500">Completed Today</p>
-            </div>
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="text-2xl font-bold text-yellow-600">
+            {collections.filter(c => c.status === 'en_route').length}
           </div>
+          <div className="text-sm text-gray-600">En Route</div>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">📅</div>
-            <div>
-              <p className="text-2xl font-bold text-[#1A1A2E]">{todayCollections.length}</p>
-              <p className="text-xs text-gray-500">Today's Runs</p>
-            </div>
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="text-2xl font-bold text-green-600">
+            {collections.filter(c => c.status === 'completed').length}
           </div>
+          <div className="text-sm text-gray-600">Completed</div>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-        {[
-          { key: 'all', label: 'All' },
-          { key: 'collection', label: 'Collections' },
-          { key: 'delivery', label: 'Deliveries' },
-          { key: 'pending', label: 'Pending' },
-          { key: 'in_transit', label: 'In Transit' },
-          { key: 'completed', label: 'Completed' },
-        ].map(f => (
+      {/* Collections List */}
+      {collections.length === 0 ? (
+        <div className="bg-white rounded-lg shadow border p-12 text-center">
+          <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+          </svg>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No collections yet</h3>
+          <p className="text-gray-600 mb-4">Create your first collection or delivery to get started</p>
           <button
-            key={f.key}
-            onClick={() => setFilter(f.key)}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
-              filter === f.key ? 'bg-[#1A1A2E] text-white' : 'bg-white text-gray-600 hover:bg-gray-100'
-            }`}
+            onClick={() => openModal()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
-            {f.label}
+            Add Collection/Delivery
           </button>
-        ))}
-      </div>
-
-      {/* Kanban View */}
-      {view === 'kanban' && (
-        <div className="grid grid-cols-4 gap-4">
-          {statusFlow.map(status => (
-            <div key={status} className="bg-gray-100 rounded-xl p-3">
-              <h3 className="font-medium text-sm text-gray-600 mb-3 px-2">
-                {statusLabels[status]} ({filtered.filter(c => c.status === status).length})
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {Object.entries(groupedCollections).map(([date, items]) => (
+            <div key={date}>
+              <h3 className="text-sm font-medium text-gray-500 mb-3">
+                {new Date(date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+                {new Date(date).toDateString() === new Date().toDateString() && (
+                  <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full">Today</span>
+                )}
               </h3>
-              <div className="space-y-2">
-                {filtered.filter(c => c.status === status).map(col => (
-                  <div 
-                    key={col.id}
-                    onClick={() => setSelectedCollection(col)}
-                    className="bg-white rounded-lg p-3 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-lg">{col.type === 'collection' ? '📥' : '📤'}</span>
-                      <span className="font-medium text-sm truncate">{col.customer_name}</span>
-                    </div>
-                    <p className="text-xs text-gray-500 truncate">{col.address}</p>
-                    <p className="text-xs text-gray-400 mt-1">{col.time_slot} • {col.scheduled_date}</p>
-                  </div>
-                ))}
+              <div className="bg-white rounded-lg shadow border overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Address</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Driver</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {items.map((col) => (
+                      <tr key={col.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4">
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            col.collection_type === 'pickup' 
+                              ? 'bg-purple-100 text-purple-800' 
+                              : 'bg-orange-100 text-orange-800'
+                          }`}>
+                            {col.collection_type === 'pickup' ? '📤 Pickup' : '📥 Delivery'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{col.scheduled_time}</td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm font-medium text-gray-900">{col.contact_name}</div>
+                          <div className="text-sm text-gray-500">{col.contact_phone}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-900">{col.address_line1}</div>
+                          <div className="text-sm text-gray-500">{col.city}, {col.postcode}</div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">{getDriverName(col.driver_id)}</td>
+                        <td className="px-6 py-4">
+                          <select
+                            value={col.status}
+                            onChange={(e) => updateStatus(col.id, e.target.value)}
+                            className={`text-xs font-medium px-2 py-1 rounded-full border-0 cursor-pointer ${getStatusColor(col.status)}`}
+                          >
+                            <option value="scheduled">Scheduled</option>
+                            <option value="en_route">En Route</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => openModal(col)}
+                            className="text-blue-600 hover:text-blue-900 mr-3"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => deleteCollection(col.id)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* List View */}
-      {view === 'list' && (
-        <div className="space-y-3">
-          {loading ? (
-            [1,2,3].map(i => (
-              <div key={i} className="bg-white rounded-xl p-4 animate-pulse">
-                <div className="h-5 bg-gray-200 rounded w-1/4 mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-              </div>
-            ))
-          ) : filtered.length === 0 ? (
-            <div className="bg-white rounded-xl p-12 text-center">
-              <div className="text-4xl mb-4">🚚</div>
-              <p className="text-gray-500 mb-4">No collections scheduled</p>
-              <button onClick={() => setShowModal(true)} className="text-[#FF6B35] hover:underline">
-                Schedule a collection →
-              </button>
-            </div>
-          ) : (
-            filtered.map((collection) => (
-              <div 
-                key={collection.id} 
-                onClick={() => setSelectedCollection(collection)}
-                className="bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer"
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${
-                      collection.type === 'collection' ? 'bg-blue-100' : 'bg-purple-100'
-                    }`}>
-                      {collection.type === 'collection' ? '📥' : '📤'}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium border ${statusColors[collection.status] || 'bg-gray-100'}`}>
-                          {statusLabels[collection.status] || collection.status}
-                        </span>
-                        <span className="text-xs text-gray-400 uppercase">{collection.type}</span>
-                      </div>
-                      <h3 className="font-semibold text-[#1A1A2E] mt-1">{collection.customer_name}</h3>
-                      <p className="text-sm text-gray-500">{collection.address}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-medium text-[#1A1A2E]">{collection.time_slot || 'Anytime'}</p>
-                    <p className="text-sm text-gray-500">
-                      {collection.scheduled_date ? new Date(collection.scheduled_date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Today'}
-                    </p>
-                    {collection.customer_phone && (
-                      <a href={`tel:${collection.customer_phone}`} className="text-xs text-[#FF6B35] hover:underline">
-                        📞 {collection.customer_phone}
-                      </a>
-                    )}
-                  </div>
-                </div>
-                {collection.notes && (
-                  <p className="mt-3 text-sm text-gray-500 bg-gray-50 p-2 rounded">{collection.notes}</p>
-                )}
-              </div>
-            ))
-          )}
-        </div>
-      )}
-
-      {/* Detail Modal */}
-      {selectedCollection && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-lg mx-4">
-            <div className="flex justify-between items-start mb-4">
-              <h2 className="text-xl font-bold text-[#1A1A2E]">Collection Details</h2>
-              <button onClick={() => setSelectedCollection(null)} className="text-gray-400 hover:text-gray-600">✕</button>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                <span className="text-2xl">{selectedCollection.type === 'collection' ? '📥' : '📤'}</span>
-                <div>
-                  <p className="font-semibold">{selectedCollection.customer_name}</p>
-                  <p className="text-sm text-gray-500">{selectedCollection.address}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs text-gray-500">Date</p>
-                  <p className="font-medium">{selectedCollection.scheduled_date}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Time Slot</p>
-                  <p className="font-medium">{selectedCollection.time_slot || 'Anytime'}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Phone</p>
-                  <p className="font-medium">{selectedCollection.customer_phone || '-'}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Status</p>
-                  <p className="font-medium">{statusLabels[selectedCollection.status] || selectedCollection.status}</p>
-                </div>
-              </div>
-
-              {selectedCollection.notes && (
-                <div>
-                  <p className="text-xs text-gray-500">Notes</p>
-                  <p className="text-sm">{selectedCollection.notes}</p>
-                </div>
-              )}
-
-              {/* Status Actions */}
-              <div className="border-t pt-4 mt-4">
-                <p className="text-sm font-medium mb-3">Update Status</p>
-                <div className="flex flex-wrap gap-2">
-                  {statusFlow.map(status => (
-                    <button
-                      key={status}
-                      onClick={() => updateStatus(selectedCollection.id, status)}
-                      disabled={selectedCollection.status === status}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border-2 transition-colors ${
-                        selectedCollection.status === status
-                          ? statusColors[status] + ' border-current'
-                          : 'border-gray-200 hover:border-[#FF6B35]'
-                      }`}
-                    >
-                      {statusLabels[status]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-4 border-t">
-                <button className="flex-1 py-2 border rounded-lg hover:bg-gray-50 text-sm">
-                  📞 Call Customer
-                </button>
-                <button className="flex-1 py-2 border rounded-lg hover:bg-gray-50 text-sm">
-                  📍 View Map
-                </button>
-                <button 
-                  onClick={() => updateStatus(selectedCollection.id, 'cancelled')}
-                  className="flex-1 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 text-sm"
-                >
-                  ❌ Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add Modal */}
+      {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
-            <h2 className="text-xl font-bold text-[#1A1A2E] mb-4">Schedule Collection/Delivery</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
-                <select
-                  value={formData.type}
-                  onChange={e => setFormData({...formData, type: e.target.value})}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#FF6B35]"
-                >
-                  <option value="collection">📥 Collection (Customer drops off)</option>
-                  <option value="delivery">📤 Delivery (Bike goes to customer)</option>
-                </select>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">
+                  {editingCollection ? 'Edit Collection/Delivery' : 'New Collection/Delivery'}
+                </h2>
+                <button onClick={closeModal} className="text-gray-400 hover:text-gray-600">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Customer Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.customer_name}
-                  onChange={e => setFormData({...formData, customer_name: e.target.value})}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#FF6B35]"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                <input
-                  type="tel"
-                  value={formData.customer_phone}
-                  onChange={e => setFormData({...formData, customer_phone: e.target.value})}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#FF6B35]"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Address *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.address}
-                  onChange={e => setFormData({...formData, address: e.target.value})}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#FF6B35]"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
-                  <input
-                    type="date"
-                    required
-                    value={formData.scheduled_date}
-                    onChange={e => setFormData({...formData, scheduled_date: e.target.value})}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#FF6B35]"
-                  />
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                    <select
+                      value={formData.collection_type}
+                      onChange={(e) => setFormData({ ...formData, collection_type: e.target.value as 'pickup' | 'delivery' })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    >
+                      <option value="pickup">Pickup</option>
+                      <option value="delivery">Delivery</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="scheduled">Scheduled</option>
+                      <option value="en_route">En Route</option>
+                      <option value="completed">Completed</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                  </div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                    <input
+                      type="date"
+                      value={formData.scheduled_date}
+                      onChange={(e) => setFormData({ ...formData, scheduled_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
+                    <input
+                      type="time"
+                      value={formData.scheduled_time}
+                      onChange={(e) => setFormData({ ...formData, scheduled_time: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Time Slot</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Customer (Optional)</label>
                   <select
-                    value={formData.time_slot}
-                    onChange={e => setFormData({...formData, time_slot: e.target.value})}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#FF6B30"
+                    value={formData.customer_id}
+                    onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <option value="">Select time...</option>
-                    {timeSlots.map(t => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
+                    <option value="">Select customer</option>
+                    {customers.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                <textarea
-                  value={formData.notes}
-                  onChange={e => setFormData({...formData, notes: e.target.value})}
-                  rows={2}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#FF6B35]"
-                />
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-[#FF6B35] text-white rounded-lg hover:bg-[#e55a2b]"
-                >
-                  Schedule
-                </button>
-              </div>
-            </form>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
+                    <input
+                      type="text"
+                      value={formData.contact_name}
+                      onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Contact Phone</label>
+                    <input
+                      type="tel"
+                      value={formData.contact_phone}
+                      onChange={(e) => setFormData({ ...formData, contact_phone: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Address Line 1</label>
+                  <input
+                    type="text"
+                    value={formData.address_line1}
+                    onChange={(e) => setFormData({ ...formData, address_line1: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Address Line 2</label>
+                  <input
+                    type="text"
+                    value={formData.address_line2}
+                    onChange={(e) => setFormData({ ...formData, address_line2: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <input
+                      type="text"
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Postcode</label>
+                    <input
+                      type="text"
+                      value={formData.postcode}
+                      onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Assign Driver</label>
+                  <select
+                    value={formData.driver_id}
+                    onChange={(e) => setFormData({ ...formData, driver_id: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Unassigned</option>
+                    {technicians.map((t) => (
+                      <option key={t.id} value={t.id}>{t.name} ({t.role})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                  <textarea
+                    value={formData.notes}
+                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    {editingCollection ? 'Update' : 'Create'} Collection/Delivery
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }
