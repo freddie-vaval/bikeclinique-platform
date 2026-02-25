@@ -7,6 +7,7 @@ const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: '🏠' },
   { name: 'Bookings', href: '/dashboard/bookings', icon: '📅' },
   { name: 'Jobs', href: '/dashboard/jobs', icon: '🔧' },
+  { name: 'Technicians', href: '/dashboard/technicians', icon: '👨‍🔧' },
   { name: 'Calendar', href: '/dashboard/calendar', icon: '📆' },
   { name: 'Customers', href: '/dashboard/customers', icon: '👥' },
   { name: 'Services', href: '/dashboard/services', icon: '⚙️' },
