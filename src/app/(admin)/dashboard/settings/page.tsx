@@ -1,6 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
+
+// Dynamic import for map (client-side only)
+const DeliveryZoneMap = dynamic(() => import('@/components/DeliveryZoneMap'), { ssr: false })
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('shop')
@@ -87,7 +91,11 @@ export default function SettingsPage() {
     delivery_start_time: '16:00',
     delivery_end_time: '19:00',
     delivery_days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-    delivery_fee: 15
+    delivery_fee: 15,
+    zone_center_lat: 51.409,
+    zone_center_lng: -0.192,
+    zone_radius_km: 10,
+    zone_polygon: [] as [number, number][]
   })
 
   const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -280,6 +288,26 @@ export default function SettingsPage() {
                 className="w-32 px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#FF6B35]"
               />
               <p className="text-xs text-gray-500 mt-1">Set to 0 for free delivery</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Delivery Coverage Area</label>
+              <p className="text-xs text-gray-500 mb-3">Draw your delivery area on the map. Customers outside this area won't see delivery option.</p>
+              <DeliveryZoneMap 
+                zone={{
+                  center_lat: deliverySettings.zone_center_lat,
+                  center_lng: deliverySettings.zone_center_lng,
+                  radius_km: deliverySettings.zone_radius_km,
+                  polygon: deliverySettings.zone_polygon
+                }}
+                onChange={(newZone) => setDeliverySettings({
+                  ...deliverySettings,
+                  zone_center_lat: newZone.center_lat,
+                  zone_center_lng: newZone.center_lng,
+                  zone_radius_km: newZone.radius_km,
+                  zone_polygon: newZone.polygon || []
+                })}
+              />
             </div>
           </div>
         </div>

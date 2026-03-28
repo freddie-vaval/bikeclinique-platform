@@ -1,21 +1,340 @@
 @import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+@import "leaflet-draw/dist/leaflet.draw.css";
 
 :root {
-  --background: #F8F9FA;
-  --foreground: #1A1A2E;
-  --primary: #FF6B35;
-  --success: #16C79A;
+  /* Industrial Dark */
+  --bg: #0A0A0A;
+  --surface: #141414;
+  --surface-elevated: #1C1C1C;
+  --border: #2A2A2A;
+  
+  /* Racing Red - Primary Accent */
+  --accent: #FF3131;
+  --accent-hover: #FF5757;
+  
+  /* Neon Green - Highlights */
+  --highlight: #39FF14;
+  
+  /* Status Colors */
+  --success: #39FF14;
+  --warning: #FFB800;
+  --error: #FF3131;
+  
+  /* Text */
+  --text-heading: #FFFFFF;
+  --text-body: #B0B0B0;
+  --text-muted: #666666;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
+  --color-background: var(--bg);
+  --color-surface: var(--surface);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
   --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text-body);
+  font-family: 'IBM Plex Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================
+   TYPOGRAPHY - BEBAS NEUE FOR HEADLINES
+   ============================================ */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Bebas Neue', sans-serif;
+  color: var(--text-heading);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+h1 { font-size: 3rem; line-height: 1; }
+h2 { font-size: 2.25rem; line-height: 1.1; }
+h3 { font-size: 1.75rem; line-height: 1.15; }
+h4 { font-size: 1.25rem; line-height: 1.2; }
+
+/* Monospace for numbers/data */
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ============================================
+   BASE ELEMENTS - INDUSTRIAL
+   ============================================ */
+
+* {
+  border-radius: 0 !important;
+}
+
+/* Thick accent borders */
+.border-accent {
+  border-left: 4px solid var(--accent);
+}
+
+.border-accent-thick {
+  border: 3px solid var(--accent);
+}
+
+.border-accent-top {
+  border-top: 4px solid var(--accent);
+}
+
+/* ============================================
+   BUTTONS - BOLD, NO ROUNDING
+   ============================================ */
+
+.btn-primary {
+  background: var(--accent);
+  color: #000000;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+  padding: 14px 32px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  text-transform: uppercase;
+}
+
+.btn-primary:hover {
+  background: #FFFFFF;
+  color: #000000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(255, 49, 49, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: #FFFFFF;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+  padding: 14px 32px;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  transition: all 0.1s ease;
+  text-transform: uppercase;
+}
+
+.btn-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ============================================
+   CARDS - FLAT, BORDERS, NO SHADOWS
+   ============================================ */
+
+.card {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  padding: 20px;
+}
+
+.card:hover {
+  border-color: var(--accent);
+}
+
+/* ============================================
+   INPUTS - HIGH CONTRAST
+   ============================================ */
+
+.input {
+  background: var(--bg);
+  border: 2px solid var(--border);
+  padding: 14px 16px;
+  color: #FFFFFF;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 14px;
+  width: 100%;
+  transition: border-color 0.1s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================
+   STATUS BADGES - NEON STYLE
+   ============================================ */
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.badge-success {
+  background: transparent;
+  border: 2px solid var(--success);
+  color: var(--success);
+}
+
+.badge-warning {
+  background: transparent;
+  border: 2px solid var(--warning);
+  color: var(--warning);
+}
+
+.badge-error {
+  background: transparent;
+  border: 2px solid var(--error);
+  color: var(--error);
+}
+
+.badge-neutral {
+  background: var(--surface-elevated);
+  border: 2px solid var(--border);
+  color: var(--text-body);
+}
+
+/* ============================================
+   TABLES - INDUSTRIAL
+   ============================================ */
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th {
+  text-align: left;
+  padding: 14px 16px;
+  background: var(--surface);
+  border-bottom: 3px solid var(--accent);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ============================================
+   SCROLLBAR - DARK
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.text-accent { color: var(--accent); }
+.text-highlight { color: var(--highlight); }
+.bg-surface { background: var(--surface); }
+.bg-elevated { background: var(--surface-elevated); }
+
+/* Grid pattern background */
+.bg-grid {
+  background-image: 
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Scanline effect */
+.scanlines::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.1) 2px,
+    rgba(0, 0, 0, 0.1) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ============================================
+   CUSTOM ANIMATIONS
+   ============================================ */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes border-dance {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }

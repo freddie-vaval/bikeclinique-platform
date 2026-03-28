@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Build the prompt based on content type
-    const typePrompts = {
+    const typePrompts: Record<string, string> = {
       blog: `Write a compelling blog post about "${prompt}" for a bike shop. Include practical tips, conversational tone, and a call to action at the end. Around 500 words.`,
       social: `Write an engaging social media post (Instagram/Facebook) about "${prompt}" for a bike shop. Use emojis, include a call to action, and relevant hashtags. Keep it under 280 characters.`,
       email: `Write a friendly promotional email about "${prompt}" for a bike shop. Include a subject line, greeting, body with 2-3 key points, and a clear call to action.`,

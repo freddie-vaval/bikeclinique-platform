@@ -1,0 +1,232 @@
+{
+  "name": "BikeClinique - Viral Video Autopilot",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "cron": [
+            {
+              "field": "cron",
+              "expression": "0 9 * * 1,3,5"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule: Mon/Wed/Fri 9AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "title": "{{$json.topic}}",
+        "content": "Video Script for BikeClinique\n\nTopic: {{$json.topic}}\nPlatform: {{$json.platform}}\nStyle: {{$json.style}}\n\n---SCRIPT---\n{{$json.script}}",
+        "database": "Content Queue"
+      },
+      "id": "save-to-notion",
+      "name": "Save Script to Notion",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 3,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "{{$credentials.claudeApiKey}}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "claude-sonnet-4-20250514"
+            },
+            {
+              "name": "max_tokens",
+              "value": 1024
+            },
+            {
+              "name": "messages",
+              "value": [
+                {
+                  "role": "user",
+                  "content": "Generate a viral TikTok/YouTube Short script for a bike shop called BikeClinique. Topic: {{$json.topic}}. Platform: {{$json.platform}}. Style: {{$json.style}}. Include: Hook (0-3sec), Body (15-30sec), CTA. Keep it punchy, engaging, under 60 words total. Format: HOOK / BODY / CTA"
+                }
+              ]
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "generate-script",
+      "name": "Generate Script with Claude",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "title": "Thumbnail - {{$json.topic}}",
+        "content": "Thumbnail brief for BikeClinique\n\nTopic: {{$json.topic}}\nPlatform: {{$json.platform}}\n\n---NANO BANANA PROMPT---\n{{$json.thumbnailPrompt}}",
+        "database": "Content Queue"
+      },
+      "id": "save-thumbnail-prompt",
+      "name": "Save Thumbnail Prompt",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 3,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tiktok/v2/post/publish/video/",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$credentials.tiktokAccessToken}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "video_url",
+              "value": "{{$json.videoUrl}}"
+            },
+            {
+              "name": "title",
+              "value": "{{$json.title}}"
+            },
+            {
+              "name": "description",
+              "value": "{{$json.description}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "post-tiktok",
+      "name": "Post to TikTok",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/upload/youtube/v3/videos",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$credentials.youtubeAccessToken}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "snippet.title",
+              "value": "{{$json.title}}"
+            },
+            {
+              "name": "snippet.description",
+              "value": "{{$json.description}}"
+            },
+            {
+              "name": "status.privacyStatus",
+              "value": "public"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "post-youtube",
+      "name": "Post to YouTube",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1050, 500]
+    }
+  ],
+  "connections": {
+    "Schedule: Mon/Wed/Fri 9AM": {
+      "main": [
+        [
+          {
+            "node": "Generate Script with Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Script with Claude": {
+      "main": [
+        [
+          {
+            "node": "Save Script to Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Script to Notion": {
+      "main": [
+        [
+          {
+            "node": "Save Thumbnail Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Thumbnail Prompt": {
+      "main": [
+        [
+          {
+            "node": "Post to TikTok",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Post to YouTube",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

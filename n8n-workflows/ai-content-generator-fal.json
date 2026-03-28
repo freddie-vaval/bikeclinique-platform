@@ -1,0 +1,193 @@
+{
+  "name": "AI Content Generator (fal.ai)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-content",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook - Content Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "ai-content-generator"
+    },
+    {
+      "parameters": {
+        "operation": "json",
+        "options": {}
+      },
+      "id": "parse-request",
+      "name": "Parse Request",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "query": "={{ $json.body.topic }}",
+        "options": {
+          "maxResults": 5
+        }
+      },
+      "id": "perplexity-research",
+      "name": "Perplexity Research",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [650, 300],
+      "credentials": {
+        "perplexityApi": "perplexity-creds"
+      }
+    },
+    {
+      "parameters": {
+        "model": "claude-sonnet-4-20250514",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are an expert content writer for a bike shop. Write engaging content based on the research provided."
+          },
+          {
+            "role": "user",
+            "content": "Topic: {{ $json.body.topic }}\nPlatform: {{ $json.body.platform }}\nTone: {{ $json.body.tone }}\n\nResearch: {{ $json.research }}"
+          }
+        ],
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "id": "claude-generation",
+      "name": "Claude Content Gen",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 3,
+      "position": [850, 300],
+      "credentials": {
+        "openAiApi": "claude-creds"
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://queue.fal.run/fal-ai/heygen",
+        "body": {
+          "prompt": "{{ $json.content }}",
+          "subject_type": "avatar",
+          "avatar_id": "{{ $json.body.avatar_id }}",
+          "voice_id": "{{ $json.body.voice_id }}"
+        },
+        "options": {}
+      },
+      "id": "fal-video-queue",
+      "name": "Queue Video (fal.ai)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channel": "whatsapp",
+        "to": "{{ $json.body.phone }}",
+        "message": "Your {{ $json.body.platform }} content is ready: {{ $json.generated_content }}\n\n{{ $json.video_url ? 'Video: ' + $json.video_url : '' }}"
+      },
+      "id": "notify-customer",
+      "name": "Notify Customer",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [1250, 300],
+      "credentials": {
+        "twilioApi": "twilio-creds"
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"success\", \"content\": $json.generated_content, \"video_id\": $json.video_request_id } }}"
+      },
+      "id": "respond-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1450, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Content Request": {
+      "main": [
+        [
+          {
+            "node": "Parse Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Request": {
+      "main": [
+        [
+          {
+            "node": "Perplexity Research",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Perplexity Research": {
+      "main": [
+        [
+          {
+            "node": "Claude Content Gen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Content Gen": {
+      "main": [
+        [
+          {
+            "node": "Queue Video (fal.ai)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Queue Video (fal.ai)": {
+      "main": [
+        [
+          {
+            "node": "Notify Customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Customer": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["ai", "content", "fal.ai", "video"],
+  "triggerCount": 1,
+  "updatedAt": "2026-03-12T21:00:00.000Z",
+  "versionId": "1"
+}

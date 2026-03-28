@@ -1,0 +1,96 @@
+{
+  "name": "fal.ai Video Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-video",
+        "responseMode": "onReceived"
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook - Video Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://queue.fal.run/fal-ai/heygen",
+        "body": {
+          "prompt": "{{ $json.script }}",
+          "subject_type": "avatar",
+          "avatar_id": "{{ $json.avatar_id }}",
+          "voice_id": "{{ $json.voice_id }}",
+          "video_length": "{{ $json.length || 30 }}"
+        },
+        "options": {}
+      },
+      "id": "fal-heygen",
+      "name": "HeyGen Video (fal.ai)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://queue.fal.run/fal-ai/lora",
+        "body": {
+          "prompt": "{{ $json.prompt }}",
+          "image_url": "{{ $json.image_url }}",
+          "subject_name": "{{ $json.subject_name }}"
+        },
+        "options": {}
+      },
+      "id": "fal-lora",
+      "name": "Create Custom Avatar (fal.ai)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 450]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"processing\", \"request_id\": $json.request_id } }}"
+      },
+      "id": "respond",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [700, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Video Request": {
+      "main": [
+        [
+          {
+            "node": "HeyGen Video (fal.ai)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create Custom Avatar (fal.ai)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HeyGen Video (fal.ai)": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": ["video", "fal.ai", "heygen", "ai-avatar"],
+  "updatedAt": "2026-03-12T21:10:00.000Z"
+}
