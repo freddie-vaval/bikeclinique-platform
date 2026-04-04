@@ -383,35 +383,87 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing teaser */}
-      <section id="pricing" className="py-24">
+      {/* Pricing */}
+      <section id="pricing" className="py-24 bg-[#0D0D0D]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">Honest Pricing</p>
+          <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">Simple Pricing</p>
           <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
-            No call. No quote.<br />Just book.
+            One price.<br />Everything included.
           </h2>
-          <p className="text-gray-400 text-lg max-w-xl mx-auto mb-8">
-            Every service has a clear price. Pay online after the work is done — never before. 
-            If we find something else, we call you first.
+          <p className="text-gray-400 text-lg max-w-xl mx-auto mb-12">
+            No seat limits. No per-job fees. No surprises. One monthly price for your entire shop.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-8">
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {[
-              { name: 'Puncture', price: '£15–25' },
-              { name: 'Full Service', price: '£80–150' },
-              { name: 'Custom Build', price: 'From £1,200' },
-            ].map(p => (
-              <div key={p.name} className="bg-[#111111] border border-white/5 rounded-xl p-5">
-                <p className="text-gray-500 text-sm mb-1">{p.name}</p>
-                <p className="text-2xl font-bold text-white">{p.price}</p>
+              {
+                name: 'Starter',
+                price: '£99',
+                desc: 'Perfect for solo mechanics and small repair shops.',
+                features: ['1 user', 'Unlimited jobs', 'Customer management', 'SMS notifications', 'Stripe payments', 'Delivery scheduling', 'AI phone assistant'],
+                cta: 'Start Free Trial',
+                popular: false,
+              },
+              {
+                name: 'Pro',
+                price: '£199',
+                desc: 'For growing shops with a team.',
+                features: ['Up to 3 users', 'Everything in Starter', 'Team management', 'Advanced reporting', 'AI diagnosis assistant', 'Priority support', 'Custom branding'],
+                cta: 'Start Free Trial',
+                popular: true,
+              },
+              {
+                name: 'Business',
+                price: '£499',
+                desc: 'Multi-location or high-volume shops.',
+                features: ['Unlimited users', 'Everything in Pro', 'Multi-location', 'White-label app', 'API access', 'Dedicated account manager', 'Custom integrations'],
+                cta: 'Contact Sales',
+                popular: false,
+              },
+            ].map(plan => (
+              <div key={plan.name} className={`relative bg-[#111111] rounded-2xl p-8 text-left flex flex-col ${plan.popular ? 'border-2 border-orange-500 shadow-xl shadow-orange-500/10' : 'border border-white/5'}`}>
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-orange-500 rounded-full text-xs font-bold text-white">
+                    Most Popular
+                  </div>
+                )}
+                <div className="mb-6">
+                  <h3 className="text-lg font-bold text-white mb-1">{plan.name}</h3>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-bold text-white">{plan.price}</span>
+                    <span className="text-gray-500 text-sm">/month</span>
+                  </div>
+                  <p className="text-gray-500 text-sm mt-2">{plan.desc}</p>
+                </div>
+
+                <div className="flex-1">
+                  <ul className="space-y-3 mb-8">
+                    {plan.features.map(f => (
+                      <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
+                        <span className="text-orange-400">✓</span>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <Link
+                  href="/sign-up"
+                  className={`block w-full py-3 text-center font-bold text-sm rounded-xl transition-colors ${
+                    plan.popular
+                      ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                      : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'
+                  }`}
+                >
+                  {plan.cta} →
+                </Link>
               </div>
             ))}
           </div>
-          <Link
-            href="/portal"
-            className="inline-block px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold text-lg rounded-xl transition-colors"
-          >
-            View Full Price List →
-          </Link>
+
+          <p className="text-gray-600 text-sm mt-8">
+            14-day free trial on all plans. No credit card required. Cancel anytime.
+          </p>
         </div>
       </section>
 
