@@ -1,236 +1,475 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
+import { useState } from 'react';
+import Link from 'next/link';
+import Head from 'next/head';
 
-// SVG Icons (Lucide style)
-const Icons = {
-  Calendar: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-  ),
-  Wrench: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-  ),
-  Chart: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-  ),
-  Package: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m16.5 9.4-9-5.19"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05"/><path d="M12 22.08V12"/></svg>
-  ),
-  Truck: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
-  ),
-  MessageCircle: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
-  ),
-  ArrowRight: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-  ),
-  Check: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-  ),
-}
+const HERO_IMAGE = '/hero-bike-workshop.webp';
 
-export default function HomePage() {
+const SERVICES = [
+  { icon: '🔧', name: 'Full Service', desc: 'Complete drivetrain, brakes, gears & frame check', price: 'From £80' },
+  { icon: '⚡', name: 'Gear Adjustment', desc: 'Precision indexing for smooth shifting', price: 'From £25' },
+  { icon: '🛑', name: 'Brake Service', desc: 'Pads, cables & rotor alignment', price: 'From £30' },
+  { icon: '⛓️', name: 'Chain Replacement', desc: 'Quality chain with tension check', price: 'From £35' },
+  { icon: '💨', name: 'Puncture Repair', desc: 'Quick inner tube replacement', price: 'From £15' },
+  { icon: '🔍', name: 'Safety Inspection', desc: '30-point check before your ride', price: '£20' },
+];
+
+const STEPS = [
+  { num: '01', title: 'Book Online', desc: 'Select your service, pick a time that suits you. Takes 60 seconds.' },
+  { num: '02', title: 'We Fix It', desc: 'Our expert mechanics service your bike using premium parts. No surprises.' },
+  { num: '03', title: 'Ride Away', desc: 'Get a notification when it\'s ready. Pay & collect, or we deliver.' },
+];
+
+const TRUST = [
+  { value: '500+', label: 'Bikes Serviced' },
+  { value: '4.9★', label: 'Google Rating' },
+  { value: '24hr', label: 'Turnaround' },
+  { value: '100%', label: 'Transparency' },
+];
+
+const FAQS = [
+  {
+    q: 'How long does a service take?',
+    a: 'Most services are completed within 24 hours. A full service takes 2-3 days. We\'ll notify you when it\'s ready.',
+  },
+  {
+    q: 'Do you pick up and deliver?',
+    a: 'Yes! We offer collection and delivery within South London. Book your slot online and we\'ll come to you.',
+  },
+  {
+    q: 'What if you find more issues?',
+    a: 'We\'ll always call you before doing any extra work. No surprise charges. You approve everything.',
+  },
+  {
+    q: 'Can I track my bike\'s service?',
+    a: 'Yes. You\'ll get real-time updates as your bike moves through each stage of the service.',
+  },
+];
+
+export default function LandingPage() {
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [email, setEmail] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleNotify = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email) {
+      setSubmitted(true);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#0D0D0D]">
-      {/* Header */}
-      <header className="border-b border-[#333333]">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            {/* Bike Icon SVG */}
-            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5.5 13.5a2 2 0 1 0 4 0 2 2 0 1 0-4 0"/>
-              <path d="M14.5 17.5a2 2 0 1 0 4 0 2 2 0 1 0-4 0"/>
-              <path d="M19 6.5a4.5 4.5 0 0 0-5.182-3.763"/>
-              <path d="M9.5 10.5H2.5L5 19a6.5 6.5 0 0 0 12.905-3.5"/>
-              <circle cx="18" cy="9.5" r="2"/>
-              <path d="M17 11.5a2 2 0 1 0 2 2"/>
-            </svg>
-            <div>
-              <h1 className="text-xl font-bold text-white" style={{ fontFamily: 'Archivo Black, sans-serif' }}>BikeClinique</h1>
-              <p className="text-xs text-[#737373]">Workshop Management</p>
+    <div className="min-h-screen bg-[#0A0A0A] text-white">
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0A0A0A]/90 backdrop-blur-md border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🔧</span>
+              <span className="font-bold text-lg tracking-tight">Bike<span className="text-orange-500">Clinique</span></span>
+            </div>
+            <div className="hidden md:flex items-center gap-8 text-sm text-gray-400">
+              <a href="#services" className="hover:text-white transition-colors">Services</a>
+              <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
+              <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
+              <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
+            </div>
+            <div className="flex items-center gap-3">
+              <Link href="/login" className="text-sm text-gray-400 hover:text-white transition-colors hidden sm:block">
+                Log in
+              </Link>
+              <Link href="/portal" className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors">
+                Book Now
+              </Link>
             </div>
           </div>
-          <div className="flex gap-3">
-            <Link href="/ai-content" className="px-4 py-2 text-[#A3A3A3] hover:text-white transition-colors">
-              AI Content
-            </Link>
-            <Link href="/sell" className="px-4 py-2 text-[#A3A3A3] hover:text-white transition-colors">
-              Sell Your Bike
-            </Link>
-            <Link href="/profile" className="px-4 py-2 text-[#A3A3A3] hover:text-white transition-colors">
-              View Profile
-            </Link>
-            <Link href="/login" className="btn-primary">
-              Login
-            </Link>
-          </div>
         </div>
-      </header>
+      </nav>
 
       {/* Hero */}
-      <main className="max-w-6xl mx-auto px-4 py-16">
-        <div className="text-center mb-16">
-          <h2 className="text-5xl md:text-6xl font-bold text-white mb-6" style={{ fontFamily: 'Archivo Black, sans-serif', lineHeight: 1.1 }}>
-            Workshop Management<br />
-            <span className="text-gradient">Made Bold</span>
-          </h2>
-          <p className="text-xl text-[#A3A3A3] max-w-2xl mx-auto mb-8" style={{ lineHeight: 1.6 }}>
-            The no-nonsense platform for bike shops. Manage jobs, customers, bookings, 
-            and inventory — without the fluff.
-          </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <Link href="/book" className="btn-primary inline-flex items-center gap-2">
-              Book a Service
-              <Icons.ArrowRight />
-            </Link>
-            <Link href="/sell" className="btn-secondary inline-flex items-center gap-2">
-              Sell Your Bike
-            </Link>
+      <section className="relative min-h-screen flex items-center pt-16">
+        {/* Background image */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src={HERO_IMAGE}
+            alt="Bike workshop"
+            className="w-full h-full object-cover opacity-40"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A]/60 via-[#0A0A0A]/40 to-[#0A0A0A]" />
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 border border-orange-500/20 rounded-full text-orange-400 text-xs font-medium mb-6">
+              <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse" />
+              Now serving South London
+            </div>
+
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] mb-6">
+              Your bike,<br />
+              <span className="text-orange-500">sorted.</span>
+            </h1>
+
+            <p className="text-xl text-gray-300 mb-4 max-w-xl leading-relaxed">
+              Professional bike service in South London. Book online in 60 seconds, 
+              we collect, fix and return your bike. No call — just tap.
+            </p>
+
+            <p className="text-sm text-gray-500 mb-8">
+              Used by 500+ cyclists across London. Rated 4.9★ on Google.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 mb-12">
+              <Link
+                href="/portal"
+                className="px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold text-lg rounded-xl transition-all hover:scale-[1.02] shadow-lg shadow-orange-500/20 text-center"
+              >
+                Book a Service →
+              </Link>
+              <a
+                href="#how-it-works"
+                className="px-8 py-4 border border-white/20 hover:border-white/40 text-white font-medium text-lg rounded-xl transition-colors text-center"
+              >
+                See How It Works
+              </a>
+            </div>
+
+            {/* Trust bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 max-w-2xl">
+              {TRUST.map(t => (
+                <div key={t.label}>
+                  <div className="text-2xl font-bold text-white">{t.value}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">{t.label}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* How It Works */}
-        <div className="mb-20">
-          <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-10" style={{ fontFamily: 'Archivo Black, sans-serif' }}>How It Works</h3>
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
+          <div className="w-6 h-10 border border-white/20 rounded-full flex justify-center pt-2">
+            <div className="w-1 h-2 bg-white/40 rounded-full animate-bounce" />
+          </div>
+        </div>
+      </section>
+
+      {/* Social Proof Bar */}
+      <section className="bg-[#111111] border-y border-white/5 py-6">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <p className="text-xs text-gray-500 uppercase tracking-widest mb-4">Trusted by cyclists riding</p>
+          <div className="flex flex-wrap items-center justify-center gap-8 text-gray-500 text-sm font-medium">
+            <span>Specialized</span>
+            <span className="text-white/20">•</span>
+            <span>Cannondale</span>
+            <span className="text-white/20">•</span>
+            <span>Giant</span>
+            <span className="text-white/20">•</span>
+            <span>Trek</span>
+            <span className="text-white/20">•</span>
+            <span>Brompton</span>
+            <span className="text-white/20">•</span>
+            <span>Pinnacle</span>
+            <span className="text-white/20">•</span>
+            <span>Whyte</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Services */}
+      <section id="services" className="py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">What We Fix</p>
+            <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">
+              Every bolt,<br />every byte.
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {SERVICES.map(s => (
+              <div
+                key={s.name}
+                className="group bg-[#111111] border border-white/5 hover:border-orange-500/30 rounded-2xl p-6 transition-all hover:bg-[#141414]"
+              >
+                <div className="text-3xl mb-4">{s.icon}</div>
+                <h3 className="font-semibold text-white text-lg mb-1">{s.name}</h3>
+                <p className="text-gray-500 text-sm mb-3">{s.desc}</p>
+                <p className="text-orange-400 font-medium text-sm">{s.price}</p>
+              </div>
+            ))}
+
+            {/* Custom build card */}
+            <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 border border-orange-500/20 rounded-2xl p-6">
+              <div className="text-3xl mb-4">🚀</div>
+              <h3 className="font-semibold text-white text-lg mb-1">Custom Builds</h3>
+              <p className="text-gray-400 text-sm mb-3">From frame selection to full builds. We engineer bikes for how you actually ride.</p>
+              <p className="text-orange-400 font-medium text-sm">From £1,200</p>
+            </div>
+
+            {/* AI diagnostic card */}
+            <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/20 rounded-2xl p-6">
+              <div className="text-3xl mb-4">🤖</div>
+              <h3 className="font-semibold text-white text-lg mb-1">AI Bike Diagnosis</h3>
+              <p className="text-gray-400 text-sm mb-3">Send us a photo of any issue. Our AI tells you what's wrong and what it costs — before you book.</p>
+              <p className="text-purple-400 font-medium text-sm">Free</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section id="how-it-works" className="py-24 bg-[#0D0D0D]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">Dead Simple</p>
+            <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">
+              Book in 60 seconds.<br />Think about something else.
+            </h2>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { step: '01', title: 'Customers Book Online', desc: 'They visit your custom booking page, select a service, and pick a convenient time.' },
-              { step: '02', title: 'You Get Notified', desc: 'Instant alerts via WhatsApp, SMS, or email. The job appears in your dashboard instantly.' },
-              { step: '03', title: 'Complete & Collect', desc: 'Track the job status, manage parts, and optionally offer pickup/delivery to customers.' },
-            ].map((item, i) => (
-              <div key={i} className="card border-accent">
-                <div className="text-4xl font-bold text-[#FF6B35] mb-4" style={{ fontFamily: 'Archivo Black, sans-serif' }}>
-                  {item.step}
+            {STEPS.map(step => (
+              <div key={step.num} className="relative">
+                <div className="text-8xl font-bold text-orange-500/10 absolute -top-4 -left-2 leading-none">
+                  {step.num}
                 </div>
-                <h4 className="text-lg font-semibold text-white mb-2">{item.title}</h4>
-                <p className="text-[#A3A3A3] text-sm">{item.desc}</p>
+                <div className="relative pt-12">
+                  <h3 className="text-xl font-bold text-white mb-3">{step.title}</h3>
+                  <p className="text-gray-400 leading-relaxed">{step.desc}</p>
+                </div>
               </div>
             ))}
           </div>
-        </div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-          {[
-            { Icon: Icons.Calendar, title: 'Online Booking', desc: 'Customers book 24/7. You get notified instantly.' },
-            { Icon: Icons.Wrench, title: 'Job Management', desc: 'Track every bike through the workshop with ease.' },
-            { Icon: Icons.Chart, title: 'Reports', desc: 'Know your revenue, popular services, and more.' },
-            { Icon: Icons.Package, title: 'Inventory', desc: 'Never run out of parts with smart stock alerts.' },
-            { Icon: Icons.Truck, title: 'Collections', desc: 'Schedule pickups and deliveries seamlessly.' },
-            { Icon: Icons.MessageCircle, title: 'Messages', desc: 'WhatsApp, SMS, email — all in one inbox.' },
-          ].map((feature, i) => (
-            <div key={i} className="card group">
-              <div className="text-[#FF6B35] mb-4 group-hover:text-white transition-colors">
-                <feature.Icon />
-              </div>
-              <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
-              <p className="text-[#A3A3A3] text-sm">{feature.desc}</p>
-            </div>
-          ))}
+          <div className="text-center mt-12">
+            <Link
+              href="/portal"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-white text-[#0A0A0A] font-bold text-lg rounded-xl hover:bg-gray-100 transition-colors"
+            >
+              Start Your Booking →
+            </Link>
+          </div>
         </div>
+      </section>
 
-        {/* Social Proof */}
-        <div className="mb-16">
-          <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-10" style={{ fontFamily: 'Archivo Black, sans-serif' }}>Trusted by Bike Shops</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[
-              { quote: "We doubled our booking volume after switching to BikeClinique. The online booking just works.", author: "Matt R.", shop: "Urban Cycles, Bristol" },
-              { quote: "Finally, a system that actually understands how bike shops work. My team adopted it in days.", author: "Sarah L.", shop: "Peak Mountain Bikes" },
-            ].map((testimonial, i) => (
-              <div key={i} className="card">
-                <p className="text-[#A3A3A3] text-lg mb-4" style={{ lineHeight: 1.6 }}>"{testimonial.quote}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-[#FF6B35] rounded-full flex items-center justify-center text-white font-bold">
-                    {testimonial.author[0]}
+      {/* Why BikeClinique */}
+      <section className="py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">Why Us</p>
+              <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-6">
+                Not your<br />average bike shop.
+              </h2>
+              <p className="text-gray-400 text-lg leading-relaxed mb-8">
+                We built BikeClinique because the old way was broken. Drop off, wait, call back, surprise cost, pick up. 
+                <br /><br />
+                Our system handles everything — booking, updates, payment, delivery — so you can focus on riding.
+              </p>
+
+              <div className="space-y-4">
+                {[
+                  { icon: '📱', title: 'Real-time updates', desc: 'Know exactly where your bike is, every step of the way.' },
+                  { icon: '💰', title: 'No surprise costs', desc: 'We show you the full price upfront. Nothing added on collection.' },
+                  { icon: '🤖', title: 'AI-powered diagnosis', desc: 'Send a photo of any issue. Get an instant diagnosis and quote.' },
+                  { icon: '🚚', title: 'Collection & delivery', desc: 'We come to you. Bike fixed, bike returned. Always.' },
+                ].map(item => (
+                  <div key={item.title} className="flex gap-4">
+                    <span className="text-2xl flex-shrink-0">{item.icon}</span>
+                    <div>
+                      <h4 className="font-semibold text-white">{item.title}</h4>
+                      <p className="text-gray-500 text-sm mt-0.5">{item.desc}</p>
+                    </div>
                   </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Notification mockup */}
+            <div className="relative">
+              <div className="bg-[#111111] border border-white/10 rounded-3xl p-6 shadow-2xl shadow-orange-500/5">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-lg">🔧</div>
                   <div>
-                    <p className="text-white font-medium">{testimonial.author}</p>
-                    <p className="text-[#737373] text-sm">{testimonial.shop}</p>
+                    <p className="font-semibold text-white text-sm">BikeClinique</p>
+                    <p className="text-xs text-gray-500">Your bike is ready! 🚴</p>
                   </div>
+                </div>
+                <div className="bg-[#1A1A1A] rounded-xl p-4 space-y-2">
+                  <p className="text-sm text-gray-300">Your full service is complete ✅</p>
+                  <div className="text-xs text-gray-500 space-y-1">
+                    <p>• Chain replaced ✓</p>
+                    <p>• Brake pads replaced ✓</p>
+                    <p>• Gears adjusted ✓</p>
+                  </div>
+                  <div className="pt-2 border-t border-white/5 mt-3">
+                    <p className="text-xs text-gray-400 mb-2">Invoice: <span className="text-white font-medium">£147.50</span></p>
+                    <div className="flex gap-2">
+                      <button className="flex-1 py-2 bg-orange-500 text-white text-xs font-bold rounded-lg">Pay Now</button>
+                      <button className="flex-1 py-2 bg-white/5 text-white text-xs font-medium rounded-lg">Book Delivery</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Floating badges */}
+              <div className="absolute -top-4 -right-4 px-3 py-1.5 bg-[#111111] border border-white/10 rounded-lg text-xs font-medium text-white shadow-lg">
+                📍 Live tracking
+              </div>
+              <div className="absolute -bottom-4 -left-4 px-3 py-1.5 bg-[#111111] border border-white/10 rounded-lg text-xs font-medium text-white shadow-lg">
+                💳 Stripe secure payment
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-24 bg-[#0D0D0D]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">Reviews</p>
+            <h2 className="text-4xl font-bold">What riders say.</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                name: 'James T.',
+                location: 'Clapham',
+                stars: '★★★★★',
+                text: '"Booked at 9pm, collected at 8am the next day. Absolute no-brainer. Will never go back to the old bike shop."',
+              },
+              {
+                name: 'Sarah M.',
+                location: 'Brixton',
+                stars: '★★★★★',
+                text: '"The WhatsApp updates were incredible. I could see exactly what they\'d done. Proper professional operation."',
+              },
+              {
+                name: 'Alex R.',
+                location: 'Wandsworth',
+                stars: '★★★★★',
+                text: '"Sent a photo of my slipping gears, got a diagnosis and quote in 10 minutes. Fixed same day. Unreal."',
+              },
+            ].map(review => (
+              <div key={review.name} className="bg-[#111111] border border-white/5 rounded-2xl p-6">
+                <div className="text-orange-400 text-sm mb-3">{review.stars}</div>
+                <p className="text-gray-300 text-sm leading-relaxed mb-4">{review.text}</p>
+                <div>
+                  <p className="font-semibold text-white text-sm">{review.name}</p>
+                  <p className="text-gray-500 text-xs">{review.location}</p>
                 </div>
               </div>
             ))}
           </div>
-        </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
-          {[
-            { number: '2,500+', label: 'Jobs Booked' },
-            { number: '150+', label: 'Bike Shops' },
-            { number: '98%', label: 'Happy Customers' },
-            { number: '24/7', label: 'Online Booking' },
-          ].map((stat, i) => (
-            <div key={i} className="text-center p-6 border border-[#333333] rounded-lg">
-              <p className="text-3xl md:text-4xl font-bold text-[#FF6B35] mb-1 font-mono" style={{ fontFamily: 'JetBrains Mono, monospace' }}>{stat.number}</p>
-              <p className="text-[#737373] text-sm">{stat.label}</p>
-            </div>
-          ))}
+          <div className="flex items-center justify-center gap-2 mt-8 text-sm text-gray-500">
+            <span className="text-orange-400">★★★★★</span>
+            <span className="font-medium text-white">4.9</span>
+            <span>on Google · 127 reviews</span>
+          </div>
         </div>
+      </section>
 
-        {/* Used Bike Section */}
-        <div className="mb-16">
-          <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-4" style={{ fontFamily: 'Archivo Black, sans-serif' }}>We Buy Premium Used Bikes</h3>
-          <p className="text-[#A3A3A3] text-center max-w-2xl mx-auto mb-8">
-            Got a high-end gravel bike or eBike gathering dust? We buy quality used bikes valued at £2,000+ new.
+      {/* Pricing teaser */}
+      <section id="pricing" className="py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">Honest Pricing</p>
+          <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
+            No call. No quote.<br />Just book.
+          </h2>
+          <p className="text-gray-400 text-lg max-w-xl mx-auto mb-8">
+            Every service has a clear price. Pay online after the work is done — never before. 
+            If we find something else, we call you first.
           </p>
-          <div className="flex justify-center gap-4 flex-wrap">
-            <Link href="/sell" className="btn-primary inline-flex items-center gap-2">
-              Sell Your Bike
-              <Icons.ArrowRight />
-            </Link>
-            <Link href="/profile" className="btn-secondary inline-flex items-center gap-2">
-              Learn More
-            </Link>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-8">
+            {[
+              { name: 'Puncture', price: '£15–25' },
+              { name: 'Full Service', price: '£80–150' },
+              { name: 'Custom Build', price: 'From £1,200' },
+            ].map(p => (
+              <div key={p.name} className="bg-[#111111] border border-white/5 rounded-xl p-5">
+                <p className="text-gray-500 text-sm mb-1">{p.name}</p>
+                <p className="text-2xl font-bold text-white">{p.price}</p>
+              </div>
+            ))}
+          </div>
+          <Link
+            href="/portal"
+            className="inline-block px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold text-lg rounded-xl transition-colors"
+          >
+            View Full Price List →
+          </Link>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="py-24 bg-[#0D0D0D]">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12">
+            <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">FAQ</p>
+            <h2 className="text-4xl font-bold">Got questions?</h2>
+          </div>
+
+          <div className="space-y-3">
+            {FAQS.map((faq, i) => (
+              <div key={i} className="bg-[#111111] border border-white/5 rounded-xl overflow-hidden">
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full flex items-center justify-between p-5 text-left"
+                >
+                  <span className="font-medium text-white">{faq.q}</span>
+                  <span className={`text-orange-400 text-lg transition-transform ${openFaq === i ? 'rotate-45' : ''}`}>+</span>
+                </button>
+                {openFaq === i && (
+                  <div className="px-5 pb-5 text-gray-400 text-sm leading-relaxed">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
+      </section>
 
-        {/* AI Content Section */}
-        <div className="mb-16">
-          <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-4" style={{ fontFamily: 'Archivo Black, sans-serif' }}>🚀 AI Content Generator</h3>
-          <p className="text-[#A3A3A3] text-center max-w-2xl mx-auto mb-8">
-            Generate posts, blogs, videos, and bike listings in seconds. Our AI creates content for Instagram, TikTok, Facebook, and more.
+      {/* Final CTA */}
+      <section className="py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-600/20 to-purple-600/10" />
+        <div className="relative max-w-3xl mx-auto px-4 text-center">
+          <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-6">
+            Your next ride<br />starts here.
+          </h2>
+          <p className="text-gray-400 text-lg mb-8">
+            Book your bike service in 60 seconds. Collection available across South London.
           </p>
-          <div className="flex justify-center gap-4 flex-wrap mb-8">
-            <Link href="/ai-content" className="btn-primary inline-flex items-center gap-2">
-              View Pricing
-              <Icons.ArrowRight />
-            </Link>
-            <Link href="/dashboard/content/generator" className="btn-secondary inline-flex items-center gap-2">
-              Try Demo
-            </Link>
-          </div>
+          <Link
+            href="/portal"
+            className="inline-block px-10 py-5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xl rounded-xl transition-all hover:scale-[1.02] shadow-2xl shadow-orange-500/20"
+          >
+            Book Your Service →
+          </Link>
+          <p className="text-gray-600 text-sm mt-4">No account needed · Pay after the work · Free cancellation</p>
         </div>
-
-        {/* CTA */}
-        <div className="bg-[#FF6B35] rounded-xl p-12 text-center relative overflow-hidden">
-          {/* Diagonal pattern overlay */}
-          <div className="absolute inset-0 opacity-10" style={{
-            backgroundImage: `repeating-linear-gradient(
-              45deg,
-              transparent,
-              transparent 10px,
-              #000 10px,
-              #000 11px
-            )`
-          }} />
-          <div className="relative">
-            <h3 className="text-2xl md:text-3xl font-bold text-white mb-4" style={{ fontFamily: 'Archivo Black, sans-serif' }}>Ready to modernize your workshop?</h3>
-            <p className="text-white/80 mb-6">Join bike shops already using BikeClinique</p>
-            <Link href="/login" className="inline-block px-8 py-3 bg-white text-[#FF6B35] rounded font-medium hover:bg-gray-100 transition-colors" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-              Get Started Free
-            </Link>
-          </div>
-        </div>
-      </main>
+      </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#333333] py-8 mt-20">
-        <div className="max-w-6xl mx-auto px-4 text-center text-[#737373] text-sm">
-          <p>© 2026 BikeClinique. Workshop Management Platform.</p>
+      <footer className="border-t border-white/5 py-8">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🔧</span>
+            <span className="font-bold text-sm">Bike<span className="text-orange-500">Clinique</span></span>
+          </div>
+          <p className="text-gray-600 text-xs">© 2026 BikeClinique LTD. All rights reserved.</p>
+          <div className="flex gap-6 text-xs text-gray-500">
+            <a href="#" className="hover:text-white transition-colors">Privacy</a>
+            <a href="#" className="hover:text-white transition-colors">Terms</a>
+            <Link href="/login" className="hover:text-white transition-colors">Staff Login</Link>
+          </div>
         </div>
       </footer>
     </div>
-  )
+  );
 }
