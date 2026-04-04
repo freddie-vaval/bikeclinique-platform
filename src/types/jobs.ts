@@ -28,6 +28,12 @@ export interface Job {
   completed_at?: string;
   notes?: string;
   checklist?: Record<string, boolean>;
+  ai_summary?: string;
+  payment_status?: string;
+  paid_at?: string;
+  delivery_slot_id?: string;
+  delivery_status?: string;
+  invoice_id?: string;
   created_at: string;
   updated_at?: string;
 }

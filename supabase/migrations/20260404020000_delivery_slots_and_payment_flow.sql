@@ -55,9 +55,21 @@ CREATE TABLE IF NOT EXISTS sms_log (
   sent_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- AI Service Enquiries (photo analysis)
+CREATE TABLE IF NOT EXISTS ai_service_enquiries (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  customer_id UUID REFERENCES customers(id),
+  media_url TEXT,
+  ai_analysis TEXT,
+  recommended_services TEXT,
+  status TEXT DEFAULT 'pending_review',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_delivery_slots_date ON delivery_slots(date);
 CREATE INDEX IF NOT EXISTS idx_delivery_slots_profile ON delivery_slots(profile_id);
 CREATE INDEX IF NOT EXISTS idx_invoices_job ON invoices(job_id);
 CREATE INDEX IF NOT EXISTS idx_invoices_customer ON invoices(customer_id);
 CREATE INDEX IF NOT EXISTS idx_sms_log_job ON sms_log(job_id);
+CREATE INDEX IF NOT EXISTS idx_ai_enquiries_customer ON ai_service_enquiries(customer_id);

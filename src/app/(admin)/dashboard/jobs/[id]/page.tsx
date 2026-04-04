@@ -34,6 +34,8 @@ export default function JobDetailPage() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const [summarising, setSummarising] = useState(false);
+  const [aiSummary, setAiSummary] = useState('');
   const [paymentLink, setPaymentLink] = useState('');
   const [smsSent, setSmsSent] = useState(false);
   const [notes, setNotes] = useState('');
@@ -160,6 +162,27 @@ export default function JobDetailPage() {
       body: JSON.stringify({ notes })
     });
     setSavingNotes(false);
+  };
+
+  const handleSummarise = async () => {
+    if (!job?.id) return;
+    setSummarising(true);
+    try {
+      const res = await fetch(`/api/jobs/${job.id}/summarise`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ checklist, notes, jobId: job.id }),
+      });
+      const data = await res.json();
+      if (data.success && data.summary) {
+        setAiSummary(data.summary);
+      } else {
+        alert('AI summary failed: ' + (data.error || 'try again'));
+      }
+    } catch {
+      alert('Error generating summary');
+    }
+    setSummarising(false);
   };
 
   const handleComplete = async () => {
@@ -543,6 +566,52 @@ export default function JobDetailPage() {
             {(job?.status === 'bike_ready' || job?.status === 'collected') && paymentLink && (
               <div className="mb-2 p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-center">
                 <span className="text-green-400 text-sm font-medium">✅ Complete — Payment Sent</span>
+              </div>
+            )}
+
+            {/* AI Summary */}
+            {(job?.status === 'bike_ready' || job?.status === 'collected' || job?.status === 'working_on') && (
+              <div className="mb-3">
+                {aiSummary ? (
+                  <div className="p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-orange-400 text-xs font-medium">🤖 AI Summary</span>
+                      <button
+                        onClick={handleSummarise}
+                        className="text-xs text-orange-400/70 hover:text-orange-300 underline"
+                      >
+                        Regenerate
+                      </button>
+                    </div>
+                    <p className="text-white text-sm leading-relaxed">{aiSummary}</p>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(aiSummary);
+                        alert('Summary copied to clipboard!');
+                      }}
+                      className="mt-2 text-xs text-orange-400/70 hover:text-orange-300"
+                    >
+                      📋 Copy to clipboard
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleSummarise}
+                    disabled={summarising}
+                    className="w-full py-2 border border-orange-500/30 text-orange-400 rounded-lg hover:bg-orange-500/10 transition-colors flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+                  >
+                    {summarising ? (
+                      <>
+                        <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-orange-400" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        🤖 Generate AI Summary
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             )}
 
