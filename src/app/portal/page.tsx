@@ -464,8 +464,20 @@ function PortalContent() {
 
 export default function PortalPage() {
   return (
-    <div className="min-h-screen bg-[#0A0A0A] pt-20 pb-16 px-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-white">
+      {/* Minimal header */}
+      <header className="bg-white border-b border-gray-100 px-4 py-4">
+        <div className="max-w-2xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🔧</span>
+            <span className="font-bold text-sm text-gray-900">Bike<span className="text-orange-500">Clinique</span></span>
+          </div>
+          <span className="text-xs text-gray-400">Book a service</span>
+        </div>
+      </header>
+
+      {/* Booking widget */}
+      <div className="max-w-2xl mx-auto px-4 py-8">
         <Suspense fallback={
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500" />
