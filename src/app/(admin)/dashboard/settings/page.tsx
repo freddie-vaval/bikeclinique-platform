@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { Truck, Calendar, FileText, Users, ChevronRight } from 'lucide-react';
 
 interface BusinessSettings {
   id: string;
@@ -86,11 +88,42 @@ export default function SettingsPage() {
     );
   }
 
+  const settingsLinks = [
+    { href: '/dashboard/settings/invoices', icon: FileText, label: 'Invoice Settings', desc: 'Prefix, numbering, VAT rate' },
+    { href: '/dashboard/settings/booking', icon: Calendar, label: 'Booking Settings', desc: 'Availability, slot duration' },
+    { href: '/dashboard/settings/leave', icon: Users, label: 'Technician Leave', desc: 'Manage team availability' },
+    { href: '/dashboard/settings/delivery-slots', icon: Truck, label: 'Delivery Slots', desc: 'Set delivery windows' },
+  ];
+
   return (
     <div className="max-w-3xl">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Business Settings</h1>
         <p className="text-sm text-gray-500 mt-1">Update your business details and contact information</p>
+      </div>
+
+      {/* Settings Links */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        {settingsLinks.map(link => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className="bg-white rounded-xl border border-gray-200 p-5 hover:border-orange-300 hover:shadow-sm transition-all group"
+          >
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-orange-50 rounded-lg group-hover:bg-orange-100 transition-colors">
+                <link.icon className="w-5 h-5 text-orange-500" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-gray-900">{link.label}</h3>
+                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                </div>
+                <p className="text-sm text-gray-500 mt-0.5">{link.desc}</p>
+              </div>
+            </div>
+          </Link>
+        ))}
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
