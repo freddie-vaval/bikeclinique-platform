@@ -33,6 +33,9 @@ export default function JobDetailPage() {
   const [technician, setTechnician] = useState<Technician | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [completing, setCompleting] = useState(false);
+  const [paymentLink, setPaymentLink] = useState('');
+  const [smsSent, setSmsSent] = useState(false);
   const [notes, setNotes] = useState('');
   const [savingNotes, setSavingNotes] = useState(false);
   
@@ -157,6 +160,31 @@ export default function JobDetailPage() {
       body: JSON.stringify({ notes })
     });
     setSavingNotes(false);
+  };
+
+  const handleComplete = async () => {
+    if (!job?.id || !confirm('Mark this job as complete and send payment link to customer?')) return;
+    setCompleting(true);
+    try {
+      const res = await fetch(`/api/jobs/${job.id}/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ send_sms: true }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPaymentLink(data.paymentLink || '');
+        setSmsSent(data.smsSent || false);
+        if (data.jobStatus) {
+          setJob(prev => prev ? { ...prev, status: data.jobStatus } : null);
+        }
+      } else {
+        alert('Failed: ' + (data.error || 'Unknown error'));
+      }
+    } catch (err) {
+      alert('Error completing job');
+    }
+    setCompleting(false);
   };
 
   const toggleChecklistItem = async (key: string) => {
@@ -473,6 +501,51 @@ export default function JobDetailPage() {
           {/* Actions */}
           <div className="bg-[#1A1A1A] border border-[#333333] rounded-xl p-5">
             <h2 className="text-sm font-semibold text-[#A3A3A3] mb-3 uppercase tracking-wide">Actions</h2>
+
+            {/* Payment Link Result */}
+            {paymentLink && (
+              <div className="mb-3 p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                <p className="text-green-400 text-xs font-medium mb-1">✅ Job Complete — Payment Link Sent</p>
+                {smsSent && <p className="text-green-400/70 text-xs">📱 SMS sent to customer</p>}
+                <a
+                  href={paymentLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 block text-xs text-orange-400 hover:text-orange-300 underline break-all"
+                >
+                  {paymentLink}
+                </a>
+              </div>
+            )}
+
+            {/* Mark Complete - only show if not already bike_ready/collected */}
+            {job?.status !== 'bike_ready' && job?.status !== 'collected' && (
+              <button
+                onClick={handleComplete}
+                disabled={completing}
+                className="w-full py-2.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 rounded-lg text-white font-medium transition-colors flex items-center justify-center gap-2 mb-2"
+              >
+                {completing ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    Mark Complete & Send Payment Link
+                  </>
+                )}
+              </button>
+            )}
+
+            {/* Job already complete */}
+            {(job?.status === 'bike_ready' || job?.status === 'collected') && paymentLink && (
+              <div className="mb-2 p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-center">
+                <span className="text-green-400 text-sm font-medium">✅ Complete — Payment Sent</span>
+              </div>
+            )}
+
             <div className="space-y-2">
               <button className="w-full py-2.5 border border-[#333333] rounded-lg text-[#A3A3A3] hover:bg-[#262626] hover:text-white transition-colors flex items-center justify-center gap-2">
                 <Printer className="w-4 h-4" />
