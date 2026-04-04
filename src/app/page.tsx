@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Head from 'next/head';
 
 const HERO_IMAGE = '/hero-bike-workshop.webp';
 
@@ -16,48 +15,40 @@ const SERVICES = [
 ];
 
 const STEPS = [
-  { num: '01', title: 'Book Online', desc: 'Select your service, pick a time that suits you. Takes 60 seconds.' },
-  { num: '02', title: 'We Fix It', desc: 'Our expert mechanics service your bike using premium parts. No surprises.' },
-  { num: '03', title: 'Ride Away', desc: 'Get a notification when it\'s ready. Pay & collect, or we deliver.' },
+  { num: '01', title: 'Book in 60 seconds', desc: 'Pick your service and a time that suits you. No phone calls, no waiting.' },
+  { num: '02', title: 'We collect your bike', desc: 'Our courier picks your bike up from your door. Or drop it off — your choice.' },
+  { num: '03', title: 'Expert mechanics fix it', desc: 'Qualified mechanics service your bike. You get updates at every step.' },
+  { num: '04', title: 'Delivered back to you', desc: 'Your bike comes back fixed and clean. Pay when you\'re happy.' },
 ];
 
 const TRUST = [
   { value: '500+', label: 'Bikes Serviced' },
   { value: '4.9★', label: 'Google Rating' },
-  { value: '24hr', label: 'Turnaround' },
-  { value: '100%', label: 'Transparency' },
+  { value: '24hr', label: 'Typical Turnaround' },
+  { value: '100%', label: 'No-fix-no-fee' },
 ];
 
 const FAQS = [
   {
+    q: 'How does collection and delivery work?',
+    a: 'We pick your bike up from your address at the time you book. Our mechanics fix it, then deliver it back — usually the same day or next. Fully insured, tracked, and handled with care.',
+  },
+  {
+    q: 'What if you find something else wrong?',
+    a: 'We\'ll always call you before doing any extra work. You approve everything — no surprise charges. If it can\'t be fixed, you don\'t pay.',
+  },
+  {
     q: 'How long does a service take?',
-    a: 'Most services are completed within 24 hours. A full service takes 2-3 days. We\'ll notify you when it\'s ready.',
+    a: 'Most services are done within 24 hours. A full service takes 1-2 days. We\'ll give you an exact ETA when you book.',
   },
   {
-    q: 'Do you pick up and deliver?',
-    a: 'Yes! We offer collection and delivery within South London. Book your slot online and we\'ll come to you.',
-  },
-  {
-    q: 'What if you find more issues?',
-    a: 'We\'ll always call you before doing any extra work. No surprise charges. You approve everything.',
-  },
-  {
-    q: 'Can I track my bike\'s service?',
-    a: 'Yes. You\'ll get real-time updates as your bike moves through each stage of the service.',
+    q: 'Is my bike insured while with you?',
+    a: 'Yes. Every bike in our care is fully insured up to £5,000. We take responsibility from the moment we pick it up.',
   },
 ];
 
 export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [email, setEmail] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-
-  const handleNotify = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email) {
-      setSubmitted(true);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white">
@@ -72,18 +63,14 @@ export default function LandingPage() {
             <div className="hidden md:flex items-center gap-8 text-sm text-gray-400">
               <a href="#services" className="hover:text-white transition-colors">Services</a>
               <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
-              <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
               <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
             </div>
             <div className="flex items-center gap-3">
-              <Link href="/login" className="text-sm text-gray-400 hover:text-white transition-colors hidden sm:block">
-                Log in
+              <Link href="/sign-up" className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors border border-white/10">
+                For Shops
               </Link>
               <Link href="/portal" className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors">
                 Book Now
-              </Link>
-              <Link href="/sign-up" className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors border border-white/10">
-                For Shops
               </Link>
             </div>
           </div>
@@ -92,7 +79,6 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="relative min-h-screen flex items-center pt-16">
-        {/* Background image */}
         <div className="absolute inset-0 z-0">
           <img
             src={HERO_IMAGE}
@@ -106,7 +92,7 @@ export default function LandingPage() {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 border border-orange-500/20 rounded-full text-orange-400 text-xs font-medium mb-6">
               <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse" />
-              Now serving South London
+              Serving South London
             </div>
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] mb-6">
@@ -115,8 +101,8 @@ export default function LandingPage() {
             </h1>
 
             <p className="text-xl text-gray-300 mb-4 max-w-xl leading-relaxed">
-              Professional bike service in South London. Book online in 60 seconds, 
-              we collect, fix and return your bike. No call — just tap.
+              Expert mechanics who come to you. Book online in 60 seconds — 
+              we collect your bike, fix it, and bring it back. No garage visit.
             </p>
 
             <p className="text-sm text-gray-500 mb-8">
@@ -136,12 +122,6 @@ export default function LandingPage() {
               >
                 See How It Works
               </a>
-              <Link
-                href="/sign-up"
-                className="px-8 py-4 border border-orange-500/30 hover:border-orange-500/60 text-orange-400 font-medium text-lg rounded-xl transition-colors text-center"
-              >
-                For Bike Shops →
-              </Link>
             </div>
 
             {/* Trust bar */}
@@ -156,32 +136,9 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Scroll indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
           <div className="w-6 h-10 border border-white/20 rounded-full flex justify-center pt-2">
             <div className="w-1 h-2 bg-white/40 rounded-full animate-bounce" />
-          </div>
-        </div>
-      </section>
-
-      {/* Social Proof Bar */}
-      <section className="bg-[#111111] border-y border-white/5 py-6">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="text-xs text-gray-500 uppercase tracking-widest mb-4">Trusted by cyclists riding</p>
-          <div className="flex flex-wrap items-center justify-center gap-8 text-gray-500 text-sm font-medium">
-            <span>Specialized</span>
-            <span className="text-white/20">•</span>
-            <span>Cannondale</span>
-            <span className="text-white/20">•</span>
-            <span>Giant</span>
-            <span className="text-white/20">•</span>
-            <span>Trek</span>
-            <span className="text-white/20">•</span>
-            <span>Brompton</span>
-            <span className="text-white/20">•</span>
-            <span>Pinnacle</span>
-            <span className="text-white/20">•</span>
-            <span>Whyte</span>
           </div>
         </div>
       </section>
@@ -190,9 +147,9 @@ export default function LandingPage() {
       <section id="services" className="py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">What We Fix</p>
+            <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">What We Offer</p>
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">
-              Every bolt,<br />every byte.
+              Every fix.<br />Done properly.
             </h2>
           </div>
 
@@ -209,7 +166,7 @@ export default function LandingPage() {
               </div>
             ))}
 
-            {/* Custom build card */}
+            {/* Custom builds */}
             <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 border border-orange-500/20 rounded-2xl p-6">
               <div className="text-3xl mb-4">🚀</div>
               <h3 className="font-semibold text-white text-lg mb-1">Custom Builds</h3>
@@ -217,13 +174,22 @@ export default function LandingPage() {
               <p className="text-orange-400 font-medium text-sm">From £1,200</p>
             </div>
 
-            {/* AI diagnostic card */}
+            {/* AI diagnostic */}
             <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/20 rounded-2xl p-6">
               <div className="text-3xl mb-4">🤖</div>
               <h3 className="font-semibold text-white text-lg mb-1">AI Bike Diagnosis</h3>
-              <p className="text-gray-400 text-sm mb-3">Send us a photo of any issue. Our AI tells you what's wrong and what it costs — before you book.</p>
+              <p className="text-gray-400 text-sm mb-3">Not sure what's wrong? Send us a photo. We'll tell you what's broken and how much it'll cost — free, instantly.</p>
               <p className="text-purple-400 font-medium text-sm">Free</p>
             </div>
+          </div>
+
+          <div className="text-center mt-10">
+            <Link
+              href="/portal"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold text-lg rounded-xl transition-colors"
+            >
+              Book Your Service →
+            </Link>
           </div>
         </div>
       </section>
@@ -234,31 +200,22 @@ export default function LandingPage() {
           <div className="text-center mb-16">
             <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">Dead Simple</p>
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">
-              Book in 60 seconds.<br />Think about something else.
+              Book in 60 seconds.<br />We'll handle the rest.
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {STEPS.map(step => (
               <div key={step.num} className="relative">
-                <div className="text-8xl font-bold text-orange-500/10 absolute -top-4 -left-2 leading-none">
+                <div className="text-7xl font-bold text-orange-500/10 absolute -top-2 -left-1 leading-none">
                   {step.num}
                 </div>
-                <div className="relative pt-12">
-                  <h3 className="text-xl font-bold text-white mb-3">{step.title}</h3>
-                  <p className="text-gray-400 leading-relaxed">{step.desc}</p>
+                <div className="relative pt-14">
+                  <h3 className="text-lg font-bold text-white mb-2">{step.title}</h3>
+                  <p className="text-gray-400 leading-relaxed text-sm">{step.desc}</p>
                 </div>
               </div>
             ))}
-          </div>
-
-          <div className="text-center mt-12">
-            <Link
-              href="/portal"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-white text-[#0A0A0A] font-bold text-lg rounded-xl hover:bg-gray-100 transition-colors"
-            >
-              Start Your Booking →
-            </Link>
           </div>
         </div>
       </section>
@@ -270,20 +227,22 @@ export default function LandingPage() {
             <div>
               <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">Why Us</p>
               <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-6">
-                Not your<br />average bike shop.
+                The old way<br />was a faff.
               </h2>
               <p className="text-gray-400 text-lg leading-relaxed mb-8">
-                We built BikeClinique because the old way was broken. Drop off, wait, call back, surprise cost, pick up. 
+                Drag your bike to a shop. Wait around. Hope they answer the phone. 
+                Get a call three days later with a quote you didn't ask for.
                 <br /><br />
-                Our system handles everything — booking, updates, payment, delivery — so you can focus on riding.
+                We built BikeClinique to fix that. You book online. We come to you. 
+                Simple.
               </p>
 
               <div className="space-y-4">
                 {[
+                  { icon: '🚚', title: 'Collection & delivery included', desc: 'We pick up and return your bike. No car rack needed.' },
                   { icon: '📱', title: 'Real-time updates', desc: 'Know exactly where your bike is, every step of the way.' },
-                  { icon: '💰', title: 'No surprise costs', desc: 'We show you the full price upfront. Nothing added on collection.' },
-                  { icon: '🤖', title: 'AI-powered diagnosis', desc: 'Send a photo of any issue. Get an instant diagnosis and quote.' },
-                  { icon: '🚚', title: 'Collection & delivery', desc: 'We come to you. Bike fixed, bike returned. Always.' },
+                  { icon: '💰', title: 'No surprise costs', desc: 'You see the full price before you book. Nothing added on.' },
+                  { icon: '🤖', title: 'AI diagnosis free', desc: 'Send a photo of any issue. Get an instant quote before you commit.' },
                 ].map(item => (
                   <div key={item.title} className="flex gap-4">
                     <span className="text-2xl flex-shrink-0">{item.icon}</span>
@@ -303,32 +262,28 @@ export default function LandingPage() {
                   <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-lg">🔧</div>
                   <div>
                     <p className="font-semibold text-white text-sm">BikeClinique</p>
-                    <p className="text-xs text-gray-500">Your bike is ready! 🚴</p>
+                    <p className="text-xs text-gray-500">Your bike is on its way back!</p>
                   </div>
                 </div>
                 <div className="bg-[#1A1A1A] rounded-xl p-4 space-y-2">
-                  <p className="text-sm text-gray-300">Your full service is complete ✅</p>
+                  <p className="text-sm text-gray-300">✅ Full Service complete</p>
                   <div className="text-xs text-gray-500 space-y-1">
                     <p>• Chain replaced ✓</p>
                     <p>• Brake pads replaced ✓</p>
                     <p>• Gears adjusted ✓</p>
                   </div>
                   <div className="pt-2 border-t border-white/5 mt-3">
-                    <p className="text-xs text-gray-400 mb-2">Invoice: <span className="text-white font-medium">£147.50</span></p>
+                    <p className="text-xs text-gray-400 mb-2">Total: <span className="text-white font-medium">£120.00</span></p>
                     <div className="flex gap-2">
                       <button className="flex-1 py-2 bg-orange-500 text-white text-xs font-bold rounded-lg">Pay Now</button>
-                      <button className="flex-1 py-2 bg-white/5 text-white text-xs font-medium rounded-lg">Book Delivery</button>
+                      <button className="flex-1 py-2 bg-white/5 text-white text-xs font-medium rounded-lg">Details</button>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Floating badges */}
               <div className="absolute -top-4 -right-4 px-3 py-1.5 bg-[#111111] border border-white/10 rounded-lg text-xs font-medium text-white shadow-lg">
                 📍 Live tracking
-              </div>
-              <div className="absolute -bottom-4 -left-4 px-3 py-1.5 bg-[#111111] border border-white/10 rounded-lg text-xs font-medium text-white shadow-lg">
-                💳 Stripe secure payment
               </div>
             </div>
           </div>
@@ -348,24 +303,21 @@ export default function LandingPage() {
               {
                 name: 'James T.',
                 location: 'Clapham',
-                stars: '★★★★★',
-                text: '"Booked at 9pm, collected at 8am the next day. Absolute no-brainer. Will never go back to the old bike shop."',
+                text: '"Booked at 9pm, collected at 8am the next day. Absolute no-brainer. Will never go back to dropping my bike at a shop."',
               },
               {
                 name: 'Sarah M.',
                 location: 'Brixton',
-                stars: '★★★★★',
-                text: '"The WhatsApp updates were incredible. I could see exactly what they\'d done. Proper professional operation."',
+                text: '"The WhatsApp updates were incredible. Could see exactly what they\'d done and when. Proper professional operation."',
               },
               {
                 name: 'Alex R.',
                 location: 'Wandsworth',
-                stars: '★★★★★',
                 text: '"Sent a photo of my slipping gears, got a diagnosis and quote in 10 minutes. Fixed same day. Unreal."',
               },
             ].map(review => (
               <div key={review.name} className="bg-[#111111] border border-white/5 rounded-2xl p-6">
-                <div className="text-orange-400 text-sm mb-3">{review.stars}</div>
+                <div className="text-orange-400 text-sm mb-3">★★★★★</div>
                 <p className="text-gray-300 text-sm leading-relaxed mb-4">{review.text}</p>
                 <div>
                   <p className="font-semibold text-white text-sm">{review.name}</p>
@@ -383,92 +335,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing */}
-      <section id="pricing" className="py-24 bg-[#0D0D0D]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">Simple Pricing</p>
-          <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
-            One price.<br />Everything included.
-          </h2>
-          <p className="text-gray-400 text-lg max-w-xl mx-auto mb-12">
-            No seat limits. No per-job fees. No surprises. One monthly price for your entire shop.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {[
-              {
-                name: 'Starter',
-                price: '£99',
-                desc: 'Perfect for solo mechanics and small repair shops.',
-                features: ['1 user', 'Unlimited jobs', 'Customer management', 'SMS notifications', 'Stripe payments', 'Delivery scheduling', 'AI phone assistant'],
-                cta: 'Start Free Trial',
-                popular: false,
-              },
-              {
-                name: 'Pro',
-                price: '£199',
-                desc: 'For growing shops with a team.',
-                features: ['Up to 3 users', 'Everything in Starter', 'Team management', 'Advanced reporting', 'AI diagnosis assistant', 'Priority support', 'Custom branding'],
-                cta: 'Start Free Trial',
-                popular: true,
-              },
-              {
-                name: 'Business',
-                price: '£499',
-                desc: 'Multi-location or high-volume shops.',
-                features: ['Unlimited users', 'Everything in Pro', 'Multi-location', 'White-label app', 'API access', 'Dedicated account manager', 'Custom integrations'],
-                cta: 'Contact Sales',
-                popular: false,
-              },
-            ].map(plan => (
-              <div key={plan.name} className={`relative bg-[#111111] rounded-2xl p-8 text-left flex flex-col ${plan.popular ? 'border-2 border-orange-500 shadow-xl shadow-orange-500/10' : 'border border-white/5'}`}>
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-orange-500 rounded-full text-xs font-bold text-white">
-                    Most Popular
-                  </div>
-                )}
-                <div className="mb-6">
-                  <h3 className="text-lg font-bold text-white mb-1">{plan.name}</h3>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-white">{plan.price}</span>
-                    <span className="text-gray-500 text-sm">/month</span>
-                  </div>
-                  <p className="text-gray-500 text-sm mt-2">{plan.desc}</p>
-                </div>
-
-                <div className="flex-1">
-                  <ul className="space-y-3 mb-8">
-                    {plan.features.map(f => (
-                      <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
-                        <span className="text-orange-400">✓</span>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <Link
-                  href="/sign-up"
-                  className={`block w-full py-3 text-center font-bold text-sm rounded-xl transition-colors ${
-                    plan.popular
-                      ? 'bg-orange-500 hover:bg-orange-600 text-white'
-                      : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'
-                  }`}
-                >
-                  {plan.cta} →
-                </Link>
-              </div>
-            ))}
-          </div>
-
-          <p className="text-gray-600 text-sm mt-8">
-            14-day free trial on all plans. No credit card required. Cancel anytime.
-          </p>
-        </div>
-      </section>
-
       {/* FAQ */}
-      <section id="faq" className="py-24 bg-[#0D0D0D]">
+      <section id="faq" className="py-24">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-12">
             <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">FAQ</p>
@@ -559,9 +427,8 @@ export default function LandingPage() {
                   <span className="text-xs text-gray-500 ml-2">bikeclinique.app/dashboard</span>
                 </div>
                 <div className="p-4">
-                  {/* Mini kanban mock */}
                   <div className="grid grid-cols-4 gap-2 mb-3">
-                    {['Booked In', 'In Work', 'Ready', 'Collected'].map((col, i) => (
+                    {['Booked In', 'In Work', 'Ready', 'Done'].map((col, i) => (
                       <div key={col} className="bg-[#1A1A1A] rounded-lg p-2">
                         <p className="text-xs text-gray-500 mb-1">{col}</p>
                         <div className="space-y-1">
@@ -572,7 +439,6 @@ export default function LandingPage() {
                       </div>
                     ))}
                   </div>
-                  {/* Stats */}
                   <div className="grid grid-cols-3 gap-2">
                     <div className="bg-[#1A1A1A] rounded-lg p-2 text-center">
                       <p className="text-lg font-bold text-white">12</p>
@@ -613,7 +479,7 @@ export default function LandingPage() {
           >
             Book Your Service →
           </Link>
-          <p className="text-gray-600 text-sm mt-4">No account needed · Pay after the work · Free cancellation</p>
+          <p className="text-gray-600 text-sm mt-4">No account needed · Pay after · Free cancellation</p>
         </div>
       </section>
 
