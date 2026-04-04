@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   phone TEXT,
   address TEXT,
   postcode TEXT,
+  logo_url TEXT,
+  accent_color TEXT DEFAULT '#FF6B35',
   role TEXT DEFAULT 'owner' CHECK (role IN ('owner', 'technician', 'admin')),
   plan TEXT DEFAULT 'starter' CHECK (plan IN ('starter', 'pro', 'business')),
   is_active BOOLEAN DEFAULT true,
