@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
+import { supabase } from '@/lib/supabase'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
@@ -127,24 +128,73 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // In production, save to Supabase:
-    // const { data, error } = await supabase
-    //   .from('bookings')
-    //   .insert({ service, date, time, collection, name, email, phone, bike, notes })
+    // Get the default shop (first shop in database)
+    const { data: shops } = await supabase
+      .from('shops')
+      .select('id, name')
+      .limit(1)
+      
+    const shopId = shops?.[0]?.id || null
     
-    // Simulate booking creation
-    const bookingId = `BK${Date.now().toString(36).toUpperCase()}`
+    // Save booking to Supabase
+    const { data: booking, error } = await supabase
+      .from('bookings')
+      .insert({
+        shop_id: shopId,
+        customer_name: name,
+        customer_email: email,
+        customer_phone: phone,
+        bike_details: bike || null,
+        service_id: service || null,
+        booking_date: date,
+        booking_time: time,
+        collection_needed: collection || false,
+        notes: notes || null,
+        status: 'confirmed',
+      })
+      .select()
+      .single()
+      
+    if (error) {
+      console.error('Supabase booking error:', error)
+      return NextResponse.json(
+        { error: 'Failed to save booking: ' + error.message },
+        { status: 500 }
+      )
+    }
+    
+    const bookingId = booking?.id || `BK${Date.now().toString(36).toUpperCase()}`
+    
+    // Also add to Trademate AI customers if not already there
+    if (phone) {
+      const { data: existingCustomer } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('phone', phone)
+        .single()
+        
+      if (!existingCustomer) {
+        await supabase
+          .from('customers')
+          .insert({
+            name,
+            email: email || null,
+            phone,
+            source: 'website_booking',
+          })
+      }
+    }
     
     // Send confirmation email
     if (process.env.RESEND_API_KEY) {
       await sendBookingConfirmation({
         customerName: name,
         customerEmail: email,
-        service: serviceName || service,
+        service: serviceName || service || 'Bike Service',
         date,
         time,
-        collection,
-        shopName: 'Bike Clinique LTD',
+        collection: collection || false,
+        shopName: shops?.[0]?.name || 'Bike Clinique LTD',
         shopEmail: 'hello@bikeclinique.co.uk',
         shopPhone: '+44 20 7946 0000',
       })
@@ -153,9 +203,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       bookingId,
+      booking,
       message: 'Booking confirmed',
     })
   } catch (error) {
+    console.error('Booking error:', error)
     return NextResponse.json(
       { error: 'Failed to create booking' },
       { status: 500 }
@@ -168,16 +220,24 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const date = searchParams.get('date')
   
-  // In production, query Supabase for existing bookings
   const allSlots = [
     '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
     '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
     '14:00', '14:30', '15:00', '15:30', '16:00', '16:30',
   ]
   
-  // Simulate some booked slots
-  const bookedSlots = date === '2026-02-21' ? ['09:00', '10:30', '14:00'] : []
+  if (!date) {
+    return NextResponse.json({ slots: allSlots })
+  }
   
+  // Query Supabase for booked slots on this date
+  const { data: existingBookings } = await supabase
+    .from('bookings')
+    .select('booking_time')
+    .eq('booking_date', date)
+    .neq('status', 'cancelled')
+  
+  const bookedSlots = (existingBookings || []).map(b => b.booking_time)
   const availableSlots = allSlots.filter(slot => !bookedSlots.includes(slot))
   
   return NextResponse.json({ slots: availableSlots })
