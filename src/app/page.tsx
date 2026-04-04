@@ -5,45 +5,122 @@ import Link from 'next/link';
 
 const HERO_IMAGE = '/hero-bike-workshop.webp';
 
-const SERVICES = [
-  { icon: '🔧', name: 'Full Service', desc: 'Complete drivetrain, brakes, gears & frame check', price: 'From £80' },
-  { icon: '⚡', name: 'Gear Adjustment', desc: 'Precision indexing for smooth shifting', price: 'From £25' },
-  { icon: '🛑', name: 'Brake Service', desc: 'Pads, cables & rotor alignment', price: 'From £30' },
-  { icon: '⛓️', name: 'Chain Replacement', desc: 'Quality chain with tension check', price: 'From £35' },
-  { icon: '💨', name: 'Puncture Repair', desc: 'Quick inner tube replacement', price: 'From £15' },
-  { icon: '🔍', name: 'Safety Inspection', desc: '30-point check before your ride', price: '£20' },
+const FEATURES = [
+  {
+    icon: '🤖',
+    title: 'AI Phone Receptionist',
+    desc: 'Every missed call is a lost job. Our AI answers, books jobs, and qualifies leads — 24/7. Your clone voice on the phone.',
+  },
+  {
+    icon: '📱',
+    title: 'Automated Customer Updates',
+    desc: 'SMS and WhatsApp updates at every stage. Bike arrived → Mechanic started → Ready for collection. Zero "where\'s my bike?" calls.',
+  },
+  {
+    icon: '💳',
+    title: 'Instant Stripe Payments',
+    desc: 'Send a payment link the moment the job\'s done. Customer pays before they collect. No chasing invoices.',
+  },
+  {
+    icon: '📅',
+    title: 'Delivery Slot Booking',
+    desc: 'Your customers pick their own delivery or collection slot from slots YOU set. No back-and-forth scheduling calls.',
+  },
+  {
+    icon: '📊',
+    title: 'Job Kanban Dashboard',
+    desc: 'See every bike in your shop at a glance. Drag, drop, update status. Works on your phone while you\'re under the bench.',
+  },
+  {
+    icon: '🤖',
+    title: 'AI Bike Diagnosis',
+    desc: 'Customers WhatsApp a photo. AI tells them what\'s wrong and quotes a price. Books itself. Pure lead capture.',
+  },
+  {
+    icon: '📋',
+    title: 'AI Job Summaries',
+    desc: 'Mechanic finishes a job. AI writes the customer-facing summary. Copy-paste into the invoice. Professional every time.',
+  },
+  {
+    icon: '🔗',
+    title: 'BikeBook Compatible',
+    desc: 'Already using BikeBook? Import all your customers, jobs, and history in one click. Zero friction to switch.',
+  },
 ];
 
-const STEPS = [
-  { num: '01', title: 'Book in 60 seconds', desc: 'Pick your service and a time that suits you. No phone calls, no waiting.' },
-  { num: '02', title: 'We collect your bike', desc: 'Our courier picks your bike up from your door. Or drop it off — your choice.' },
-  { num: '03', title: 'Expert mechanics fix it', desc: 'Qualified mechanics service your bike. You get updates at every step.' },
-  { num: '04', title: 'Delivered back to you', desc: 'Your bike comes back fixed and clean. Pay when you\'re happy.' },
+const PROBLEMS = [
+  { before: 'Missing calls', after: 'AI answers every call and books jobs automatically' },
+  { before: 'Chasing payments', after: 'Customer pays via Stripe before they collect' },
+  { before: 'Customers asking "where\'s my bike?"', after: 'Automated WhatsApp updates at every stage' },
+  { before: 'Scheduling collection slots', after: 'Customer books their own slot from your calendar' },
+  { before: 'Admin eating your time', after: 'AI writes invoices and job summaries' },
 ];
 
-const TRUST = [
-  { value: '500+', label: 'Bikes Serviced' },
-  { value: '4.9★', label: 'Google Rating' },
-  { value: '24hr', label: 'Typical Turnaround' },
-  { value: '100%', label: 'No-fix-no-fee' },
+const TESTIMONIALS = [
+  {
+    name: 'Mechanic, 12 years',
+    shop: 'Independent shop, South London',
+    text: '"I was using a spreadsheet and WhatsApp. Now everything is in one place. I actually leave work on time."',
+  },
+  {
+    name: 'Shop owner, 2 locations',
+    shop: 'Chain across South East',
+    text: '"The AI phone assistant alone has paid for itself three times over. We don\'t miss calls anymore."',
+  },
+  {
+    name: 'Solo mechanic',
+    shop: 'Mobile service, zone 2-4',
+    text: '"I was doing all my admin at 10pm. Now it just sorts itself while I\'m with the bike."',
+  },
+];
+
+const PRICING_PLANS = [
+  {
+    name: 'Starter',
+    price: '£99',
+    desc: 'For solo mechanics and small repair shops.',
+    features: ['1 user', 'Unlimited jobs', 'AI phone assistant', 'SMS & WhatsApp updates', 'Stripe payments', 'Delivery scheduling', 'AI diagnosis assistant', 'AI job summaries'],
+    cta: 'Start Free Trial',
+    popular: false,
+  },
+  {
+    name: 'Pro',
+    price: '£199',
+    desc: 'For growing shops with a team.',
+    features: ['Up to 3 users', 'Everything in Starter', 'Team management', 'Advanced reporting', 'Customer analytics', 'Priority support', 'Custom branding'],
+    cta: 'Start Free Trial',
+    popular: true,
+  },
+  {
+    name: 'Business',
+    price: '£499',
+    desc: 'For multi-location or high-volume shops.',
+    features: ['Unlimited users', 'Everything in Pro', 'Multi-location', 'White-label app', 'API access', 'Dedicated account manager', 'Custom integrations'],
+    cta: 'Contact Sales',
+    popular: false,
+  },
 ];
 
 const FAQS = [
   {
-    q: 'How does collection and delivery work?',
-    a: 'We pick your bike up from your address at the time you book. Our mechanics fix it, then deliver it back — usually the same day or next. Fully insured, tracked, and handled with care.',
+    q: 'Do I have to switch from BikeBook?',
+    a: 'No. BikeClinique works alongside your existing tools. We also offer a one-click import if you want to migrate. Most shops switch fully within a day.',
   },
   {
-    q: 'What if you find something else wrong?',
-    a: 'We\'ll always call you before doing any extra work. You approve everything — no surprise charges. If it can\'t be fixed, you don\'t pay.',
+    q: 'Does the AI phone sound like me?',
+    a: 'Yes. We use voice cloning — you record 30 seconds and the AI sounds like you. Customers can\'t tell the difference.',
   },
   {
-    q: 'How long does a service take?',
-    a: 'Most services are done within 24 hours. A full service takes 1-2 days. We\'ll give you an exact ETA when you book.',
+    q: 'What if a customer has a complaint?',
+    a: 'The AI transfers to you for edge cases. You\'re always in control. All communications are logged in the job record.',
   },
   {
-    q: 'Is my bike insured while with you?',
-    a: 'Yes. Every bike in our care is fully insured up to £5,000. We take responsibility from the moment we pick it up.',
+    q: 'How long does it take to set up?',
+    a: 'Most shops are live within 30 minutes. Import your customers, set your services, configure your delivery slots. Done.',
+  },
+  {
+    q: 'Is there a free trial?',
+    a: 'Yes — 14 days, no credit card required. Your shop data is seeded automatically so you can see how it works with real jobs.',
   },
 ];
 
@@ -58,19 +135,23 @@ export default function LandingPage() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2">
               <span className="text-xl">🔧</span>
-              <span className="font-bold text-lg tracking-tight">Bike<span className="text-orange-500">Clinique</span></span>
+              <span className="font-bold text-lg tracking-tight text-white">Bike<span className="text-orange-500">Clinique</span></span>
             </div>
             <div className="hidden md:flex items-center gap-8 text-sm text-gray-400">
-              <a href="#services" className="hover:text-white transition-colors">Services</a>
+              <a href="#features" className="hover:text-white transition-colors">Features</a>
               <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
+              <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
               <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
             </div>
             <div className="flex items-center gap-3">
-              <Link href="/sign-up" className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors border border-white/10">
-                For Shops
+              <Link href="/portal" className="text-sm text-gray-400 hover:text-white transition-colors">
+                Customer Booking
               </Link>
-              <Link href="/portal" className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors">
-                Book Now
+              <Link href="/login" className="text-sm text-gray-400 hover:text-white transition-colors">
+                Sign In
+              </Link>
+              <Link href="/sign-up" className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors">
+                Start Free Trial
               </Link>
             </div>
           </div>
@@ -83,53 +164,57 @@ export default function LandingPage() {
           <img
             src={HERO_IMAGE}
             alt="Bike workshop"
-            className="w-full h-full object-cover opacity-40"
+            className="w-full h-full object-cover opacity-30"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A]/60 via-[#0A0A0A]/40 to-[#0A0A0A]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A]/60 via-[#0A0A0A]/50 to-[#0A0A0A]" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 border border-orange-500/20 rounded-full text-orange-400 text-xs font-medium mb-6">
               <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse" />
-              Serving South London
+              For Bike Shop Owners
             </div>
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] mb-6">
-              Your bike,<br />
-              <span className="text-orange-500">sorted.</span>
+              Run your shop<br />
+              <span className="text-orange-500">without the chaos.</span>
             </h1>
 
             <p className="text-xl text-gray-300 mb-4 max-w-xl leading-relaxed">
-              Expert mechanics who come to you. Book online in 60 seconds — 
-              we collect your bike, fix it, and bring it back. No garage visit.
+              The all-in-one platform for bike repair shops. AI phone receptionist, automated updates, 
+              Stripe payments, and delivery scheduling — built for shops like yours.
             </p>
 
-            <p className="text-sm text-gray-500 mb-8">
-              Used by 500+ cyclists across London. Rated 4.9★ on Google.
+            <p className="text-sm text-gray-500 mb-10">
+              Used by independent shops across the UK. No more missed calls. No more admin at 10pm.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
               <Link
-                href="/portal"
+                href="/sign-up"
                 className="px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold text-lg rounded-xl transition-all hover:scale-[1.02] shadow-lg shadow-orange-500/20 text-center"
               >
-                Book a Service →
+                Start Free Trial →
               </Link>
               <a
-                href="#how-it-works"
+                href="#features"
                 className="px-8 py-4 border border-white/20 hover:border-white/40 text-white font-medium text-lg rounded-xl transition-colors text-center"
               >
-                See How It Works
+                See Features
               </a>
             </div>
 
-            {/* Trust bar */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 max-w-2xl">
-              {TRUST.map(t => (
-                <div key={t.label}>
-                  <div className="text-2xl font-bold text-white">{t.value}</div>
-                  <div className="text-xs text-gray-500 mt-0.5">{t.label}</div>
+              {[
+                { v: '14-day', l: 'Free Trial' },
+                { v: '30 min', l: 'Setup Time' },
+                { v: 'Zero', l: 'Migration Friction' },
+                { v: '24/7', l: 'AI Receptionist' },
+              ].map(t => (
+                <div key={t.l}>
+                  <div className="text-2xl font-bold text-white">{t.v}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">{t.l}</div>
                 </div>
               ))}
             </div>
@@ -143,53 +228,48 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Services */}
-      <section id="services" className="py-24">
+      {/* Problems → Solutions */}
+      <section className="py-24 bg-[#0D0D0D]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">What We Offer</p>
+            <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">The Problem</p>
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">
-              Every fix.<br />Done properly.
+              You're losing jobs<br />you don't even know about.
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {SERVICES.map(s => (
-              <div
-                key={s.name}
-                className="group bg-[#111111] border border-white/5 hover:border-orange-500/30 rounded-2xl p-6 transition-all hover:bg-[#141414]"
-              >
-                <div className="text-3xl mb-4">{s.icon}</div>
-                <h3 className="font-semibold text-white text-lg mb-1">{s.name}</h3>
-                <p className="text-gray-500 text-sm mb-3">{s.desc}</p>
-                <p className="text-orange-400 font-medium text-sm">{s.price}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
+            {PROBLEMS.map(p => (
+              <div key={p.before} className="bg-[#111111] border border-white/5 rounded-2xl p-6">
+                <div className="text-red-400/70 text-sm font-medium mb-2 line-through">{p.before}</div>
+                <div className="flex items-center gap-2 text-green-400 text-sm font-medium">
+                  <span>→</span>
+                  {p.after}
+                </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
 
-            {/* Custom builds */}
-            <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 border border-orange-500/20 rounded-2xl p-6">
-              <div className="text-3xl mb-4">🚀</div>
-              <h3 className="font-semibold text-white text-lg mb-1">Custom Builds</h3>
-              <p className="text-gray-400 text-sm mb-3">From frame selection to full builds. We engineer bikes for how you actually ride.</p>
-              <p className="text-orange-400 font-medium text-sm">From £1,200</p>
-            </div>
-
-            {/* AI diagnostic */}
-            <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/20 rounded-2xl p-6">
-              <div className="text-3xl mb-4">🤖</div>
-              <h3 className="font-semibold text-white text-lg mb-1">AI Bike Diagnosis</h3>
-              <p className="text-gray-400 text-sm mb-3">Not sure what's wrong? Send us a photo. We'll tell you what's broken and how much it'll cost — free, instantly.</p>
-              <p className="text-purple-400 font-medium text-sm">Free</p>
-            </div>
+      {/* Features */}
+      <section id="features" className="py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">Features</p>
+            <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">
+              Everything you need.<br />Nothing you don't.
+            </h2>
           </div>
 
-          <div className="text-center mt-10">
-            <Link
-              href="/portal"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold text-lg rounded-xl transition-colors"
-            >
-              Book Your Service →
-            </Link>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {FEATURES.map(f => (
+              <div key={f.title} className="bg-[#111111] border border-white/5 hover:border-orange-500/20 rounded-2xl p-6 transition-all hover:bg-[#141414]">
+                <div className="text-3xl mb-4">{f.icon}</div>
+                <h3 className="font-bold text-white text-base mb-2">{f.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -198,140 +278,113 @@ export default function LandingPage() {
       <section id="how-it-works" className="py-24 bg-[#0D0D0D]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">Dead Simple</p>
+            <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">Setup</p>
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">
-              Book in 60 seconds.<br />We'll handle the rest.
+              Live in 30 minutes.<br />Not 30 days.
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {STEPS.map(step => (
-              <div key={step.num} className="relative">
-                <div className="text-7xl font-bold text-orange-500/10 absolute -top-2 -left-1 leading-none">
-                  {step.num}
-                </div>
-                <div className="relative pt-14">
-                  <h3 className="text-lg font-bold text-white mb-2">{step.title}</h3>
-                  <p className="text-gray-400 leading-relaxed text-sm">{step.desc}</p>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            {[
+              { num: '01', title: 'Create your shop', desc: 'Sign up in 60 seconds. Your dashboard is ready immediately.' },
+              { num: '02', title: 'Import your data', desc: 'One-click import from BikeBook. All your customers, jobs, and history.' },
+              { num: '03', title: 'Go live', desc: 'Configure your services, set your delivery slots, switch on the AI receptionist. Done.' },
+            ].map(step => (
+              <div key={step.num} className="text-center">
+                <div className="text-7xl font-bold text-orange-500/15 mb-2 leading-none">{step.num}</div>
+                <h3 className="text-lg font-bold text-white mb-2">{step.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{step.desc}</p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* Why BikeClinique */}
-      <section className="py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">Why Us</p>
-              <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-6">
-                The old way<br />was a faff.
-              </h2>
-              <p className="text-gray-400 text-lg leading-relaxed mb-8">
-                Drag your bike to a shop. Wait around. Hope they answer the phone. 
-                Get a call three days later with a quote you didn't ask for.
-                <br /><br />
-                We built BikeClinique to fix that. You book online. We come to you. 
-                Simple.
-              </p>
-
-              <div className="space-y-4">
-                {[
-                  { icon: '🚚', title: 'Collection & delivery included', desc: 'We pick up and return your bike. No car rack needed.' },
-                  { icon: '📱', title: 'Real-time updates', desc: 'Know exactly where your bike is, every step of the way.' },
-                  { icon: '💰', title: 'No surprise costs', desc: 'You see the full price before you book. Nothing added on.' },
-                  { icon: '🤖', title: 'AI diagnosis free', desc: 'Send a photo of any issue. Get an instant quote before you commit.' },
-                ].map(item => (
-                  <div key={item.title} className="flex gap-4">
-                    <span className="text-2xl flex-shrink-0">{item.icon}</span>
-                    <div>
-                      <h4 className="font-semibold text-white">{item.title}</h4>
-                      <p className="text-gray-500 text-sm mt-0.5">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Notification mockup */}
-            <div className="relative">
-              <div className="bg-[#111111] border border-white/10 rounded-3xl p-6 shadow-2xl shadow-orange-500/5">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-lg">🔧</div>
-                  <div>
-                    <p className="font-semibold text-white text-sm">BikeClinique</p>
-                    <p className="text-xs text-gray-500">Your bike is on its way back!</p>
-                  </div>
-                </div>
-                <div className="bg-[#1A1A1A] rounded-xl p-4 space-y-2">
-                  <p className="text-sm text-gray-300">✅ Full Service complete</p>
-                  <div className="text-xs text-gray-500 space-y-1">
-                    <p>• Chain replaced ✓</p>
-                    <p>• Brake pads replaced ✓</p>
-                    <p>• Gears adjusted ✓</p>
-                  </div>
-                  <div className="pt-2 border-t border-white/5 mt-3">
-                    <p className="text-xs text-gray-400 mb-2">Total: <span className="text-white font-medium">£120.00</span></p>
-                    <div className="flex gap-2">
-                      <button className="flex-1 py-2 bg-orange-500 text-white text-xs font-bold rounded-lg">Pay Now</button>
-                      <button className="flex-1 py-2 bg-white/5 text-white text-xs font-medium rounded-lg">Details</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="absolute -top-4 -right-4 px-3 py-1.5 bg-[#111111] border border-white/10 rounded-lg text-xs font-medium text-white shadow-lg">
-                📍 Live tracking
-              </div>
-            </div>
+          <div className="text-center mt-12">
+            <Link
+              href="/sign-up"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-white text-[#0A0A0A] font-bold text-lg rounded-xl hover:bg-gray-100 transition-colors"
+            >
+              Start Your Free Trial →
+            </Link>
           </div>
         </div>
       </section>
 
       {/* Testimonials */}
-      <section className="py-24 bg-[#0D0D0D]">
+      <section className="py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">Reviews</p>
-            <h2 className="text-4xl font-bold">What riders say.</h2>
+            <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">From Shop Owners</p>
+            <h2 className="text-4xl font-bold">Real shops. Real results.</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                name: 'James T.',
-                location: 'Clapham',
-                text: '"Booked at 9pm, collected at 8am the next day. Absolute no-brainer. Will never go back to dropping my bike at a shop."',
-              },
-              {
-                name: 'Sarah M.',
-                location: 'Brixton',
-                text: '"The WhatsApp updates were incredible. Could see exactly what they\'d done and when. Proper professional operation."',
-              },
-              {
-                name: 'Alex R.',
-                location: 'Wandsworth',
-                text: '"Sent a photo of my slipping gears, got a diagnosis and quote in 10 minutes. Fixed same day. Unreal."',
-              },
-            ].map(review => (
-              <div key={review.name} className="bg-[#111111] border border-white/5 rounded-2xl p-6">
-                <div className="text-orange-400 text-sm mb-3">★★★★★</div>
-                <p className="text-gray-300 text-sm leading-relaxed mb-4">{review.text}</p>
+            {TESTIMONIALS.map(t => (
+              <div key={t.name} className="bg-[#111111] border border-white/5 rounded-2xl p-6">
+                <p className="text-gray-300 text-sm leading-relaxed mb-4">{t.text}</p>
                 <div>
-                  <p className="font-semibold text-white text-sm">{review.name}</p>
-                  <p className="text-gray-500 text-xs">{review.location}</p>
+                  <p className="font-semibold text-white text-sm">{t.name}</p>
+                  <p className="text-gray-500 text-xs">{t.shop}</p>
                 </div>
               </div>
             ))}
           </div>
+        </div>
+      </section>
 
-          <div className="flex items-center justify-center gap-2 mt-8 text-sm text-gray-500">
-            <span className="text-orange-400">★★★★★</span>
-            <span className="font-medium text-white">4.9</span>
-            <span>on Google · 127 reviews</span>
+      {/* Pricing */}
+      <section id="pricing" className="py-24 bg-[#0D0D0D]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">Pricing</p>
+          <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
+            One price. Everything included.
+          </h2>
+          <p className="text-gray-400 text-lg max-w-xl mx-auto mb-12">
+            No per-job fees. No seat limits. No surprises. Cancel anytime.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto text-left">
+            {PRICING_PLANS.map(plan => (
+              <div key={plan.name} className={`relative bg-[#111111] rounded-2xl p-8 flex flex-col ${plan.popular ? 'border-2 border-orange-500 shadow-xl shadow-orange-500/10' : 'border border-white/5'}`}>
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-orange-500 rounded-full text-xs font-bold text-white">
+                    Most Popular
+                  </div>
+                )}
+                <div className="mb-6">
+                  <h3 className="text-lg font-bold text-white mb-1">{plan.name}</h3>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-bold text-white">{plan.price}</span>
+                    <span className="text-gray-500 text-sm">/month</span>
+                  </div>
+                  <p className="text-gray-500 text-sm mt-2">{plan.desc}</p>
+                </div>
+                <div className="flex-1">
+                  <ul className="space-y-3 mb-8">
+                    {plan.features.map(f => (
+                      <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
+                        <span className="text-orange-400">✓</span>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <Link
+                  href="/sign-up"
+                  className={`block w-full py-3 text-center font-bold text-sm rounded-xl transition-colors ${
+                    plan.popular
+                      ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                      : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'
+                  }`}
+                >
+                  {plan.cta} →
+                </Link>
+              </div>
+            ))}
           </div>
+
+          <p className="text-gray-600 text-sm mt-8">
+            14-day free trial on all plans. No credit card required.
+          </p>
         </div>
       </section>
 
@@ -340,7 +393,7 @@ export default function LandingPage() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-12">
             <p className="text-orange-500 text-sm font-medium uppercase tracking-widest mb-3">FAQ</p>
-            <h2 className="text-4xl font-bold">Got questions?</h2>
+            <h2 className="text-4xl font-bold">Common questions</h2>
           </div>
 
           <div className="space-y-3">
@@ -364,122 +417,24 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* For Bike Shops */}
-      <section className="py-24 bg-gradient-to-b from-[#0A0A0A] to-[#0D0D0D] border-y border-white/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-full text-purple-400 text-xs font-medium mb-5">
-                <span>🏪</span> For Bike Shops
-              </div>
-              <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-6">
-                Run your shop<br />
-                <span className="text-orange-500">without the chaos.</span>
-              </h2>
-              <p className="text-gray-400 text-lg leading-relaxed mb-8">
-                BikeClinique for Shops is the all-in-one platform for independent bike repair shops. 
-                Job management, AI phone receptionist, automated customer updates, Stripe payments, 
-                and delivery scheduling — everything in one place.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                {[
-                  { icon: '🤖', title: 'AI Phone Receptionist', desc: 'Never miss a booking call again' },
-                  { icon: '📱', title: 'Auto Customer Updates', desc: 'SMS & WhatsApp at every step' },
-                  { icon: '💳', title: 'Instant Stripe Payments', desc: 'Get paid before they collect' },
-                  { icon: '📅', title: 'Delivery Scheduling', desc: 'Customers book their own slot' },
-                  { icon: '📊', title: 'Job Dashboard', desc: 'Kanban board for every bike in the shop' },
-                  { icon: '🔗', title: 'Works with BikeBook', desc: 'Import existing data in one click' },
-                ].map(f => (
-                  <div key={f.title} className="flex gap-3">
-                    <span className="text-xl flex-shrink-0">{f.icon}</span>
-                    <div>
-                      <p className="font-medium text-white text-sm">{f.title}</p>
-                      <p className="text-gray-500 text-xs">{f.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link
-                  href="/sign-up"
-                  className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-colors text-center"
-                >
-                  Start Free Trial →
-                </Link>
-                <Link
-                  href="/dashboard"
-                  className="px-6 py-3 border border-white/10 hover:border-white/20 text-white font-medium rounded-xl transition-colors text-center"
-                >
-                  See Live Demo
-                </Link>
-              </div>
-            </div>
-
-            {/* Dashboard mockup */}
-            <div className="relative">
-              <div className="bg-[#141414] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-[#1A1A1A]">
-                  <div className="w-3 h-3 rounded-full bg-red-500/60" />
-                  <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
-                  <div className="w-3 h-3 rounded-full bg-green-500/60" />
-                  <span className="text-xs text-gray-500 ml-2">bikeclinique.app/dashboard</span>
-                </div>
-                <div className="p-4">
-                  <div className="grid grid-cols-4 gap-2 mb-3">
-                    {['Booked In', 'In Work', 'Ready', 'Done'].map((col, i) => (
-                      <div key={col} className="bg-[#1A1A1A] rounded-lg p-2">
-                        <p className="text-xs text-gray-500 mb-1">{col}</p>
-                        <div className="space-y-1">
-                          {[1, 2, i === 2 ? 1 : 0].map(j => (
-                            <div key={j} className="h-6 bg-[#262626] rounded border border-white/5" />
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="bg-[#1A1A1A] rounded-lg p-2 text-center">
-                      <p className="text-lg font-bold text-white">12</p>
-                      <p className="text-xs text-gray-500">Jobs</p>
-                    </div>
-                    <div className="bg-[#1A1A1A] rounded-lg p-2 text-center">
-                      <p className="text-lg font-bold text-orange-400">£847</p>
-                      <p className="text-xs text-gray-500">Today</p>
-                    </div>
-                    <div className="bg-[#1A1A1A] rounded-lg p-2 text-center">
-                      <p className="text-lg font-bold text-green-400">3</p>
-                      <p className="text-xs text-gray-500">Ready</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="absolute -bottom-3 -right-3 px-3 py-1.5 bg-orange-500 rounded-lg text-xs font-bold text-white shadow-lg">
-                14-day free trial
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Final CTA */}
       <section className="py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-orange-600/20 to-purple-600/10" />
         <div className="relative max-w-3xl mx-auto px-4 text-center">
           <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-6">
-            Your next ride<br />starts here.
+            Your shop.<br />On autopilot.
           </h2>
           <p className="text-gray-400 text-lg mb-8">
-            Book your bike service in 60 seconds. Collection available across South London.
+            Start your 14-day free trial. No credit card. No migration headache. 
+            Your shop data is seeded automatically.
           </p>
           <Link
-            href="/portal"
+            href="/sign-up"
             className="inline-block px-10 py-5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xl rounded-xl transition-all hover:scale-[1.02] shadow-2xl shadow-orange-500/20"
           >
-            Book Your Service →
+            Start Free Trial →
           </Link>
-          <p className="text-gray-600 text-sm mt-4">No account needed · Pay after · Free cancellation</p>
+          <p className="text-gray-600 text-sm mt-4">14 days free · No credit card · Cancel anytime</p>
         </div>
       </section>
 
