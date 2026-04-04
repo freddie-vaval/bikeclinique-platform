@@ -82,6 +82,9 @@ export default function LandingPage() {
               <Link href="/portal" className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors">
                 Book Now
               </Link>
+              <Link href="/sign-up" className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors border border-white/10">
+                For Shops
+              </Link>
             </div>
           </div>
         </div>
@@ -133,6 +136,12 @@ export default function LandingPage() {
               >
                 See How It Works
               </a>
+              <Link
+                href="/sign-up"
+                className="px-8 py-4 border border-orange-500/30 hover:border-orange-500/60 text-orange-400 font-medium text-lg rounded-xl transition-colors text-center"
+              >
+                For Bike Shops →
+              </Link>
             </div>
 
             {/* Trust bar */}
@@ -431,6 +440,107 @@ export default function LandingPage() {
                 )}
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* For Bike Shops */}
+      <section className="py-24 bg-gradient-to-b from-[#0A0A0A] to-[#0D0D0D] border-y border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-full text-purple-400 text-xs font-medium mb-5">
+                <span>🏪</span> For Bike Shops
+              </div>
+              <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-6">
+                Run your shop<br />
+                <span className="text-orange-500">without the chaos.</span>
+              </h2>
+              <p className="text-gray-400 text-lg leading-relaxed mb-8">
+                BikeClinique for Shops is the all-in-one platform for independent bike repair shops. 
+                Job management, AI phone receptionist, automated customer updates, Stripe payments, 
+                and delivery scheduling — everything in one place.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                {[
+                  { icon: '🤖', title: 'AI Phone Receptionist', desc: 'Never miss a booking call again' },
+                  { icon: '📱', title: 'Auto Customer Updates', desc: 'SMS & WhatsApp at every step' },
+                  { icon: '💳', title: 'Instant Stripe Payments', desc: 'Get paid before they collect' },
+                  { icon: '📅', title: 'Delivery Scheduling', desc: 'Customers book their own slot' },
+                  { icon: '📊', title: 'Job Dashboard', desc: 'Kanban board for every bike in the shop' },
+                  { icon: '🔗', title: 'Works with BikeBook', desc: 'Import existing data in one click' },
+                ].map(f => (
+                  <div key={f.title} className="flex gap-3">
+                    <span className="text-xl flex-shrink-0">{f.icon}</span>
+                    <div>
+                      <p className="font-medium text-white text-sm">{f.title}</p>
+                      <p className="text-gray-500 text-xs">{f.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link
+                  href="/sign-up"
+                  className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-colors text-center"
+                >
+                  Start Free Trial →
+                </Link>
+                <Link
+                  href="/dashboard"
+                  className="px-6 py-3 border border-white/10 hover:border-white/20 text-white font-medium rounded-xl transition-colors text-center"
+                >
+                  See Live Demo
+                </Link>
+              </div>
+            </div>
+
+            {/* Dashboard mockup */}
+            <div className="relative">
+              <div className="bg-[#141414] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-[#1A1A1A]">
+                  <div className="w-3 h-3 rounded-full bg-red-500/60" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
+                  <div className="w-3 h-3 rounded-full bg-green-500/60" />
+                  <span className="text-xs text-gray-500 ml-2">bikeclinique.app/dashboard</span>
+                </div>
+                <div className="p-4">
+                  {/* Mini kanban mock */}
+                  <div className="grid grid-cols-4 gap-2 mb-3">
+                    {['Booked In', 'In Work', 'Ready', 'Collected'].map((col, i) => (
+                      <div key={col} className="bg-[#1A1A1A] rounded-lg p-2">
+                        <p className="text-xs text-gray-500 mb-1">{col}</p>
+                        <div className="space-y-1">
+                          {[1, 2, i === 2 ? 1 : 0].map(j => (
+                            <div key={j} className="h-6 bg-[#262626] rounded border border-white/5" />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Stats */}
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-[#1A1A1A] rounded-lg p-2 text-center">
+                      <p className="text-lg font-bold text-white">12</p>
+                      <p className="text-xs text-gray-500">Jobs</p>
+                    </div>
+                    <div className="bg-[#1A1A1A] rounded-lg p-2 text-center">
+                      <p className="text-lg font-bold text-orange-400">£847</p>
+                      <p className="text-xs text-gray-500">Today</p>
+                    </div>
+                    <div className="bg-[#1A1A1A] rounded-lg p-2 text-center">
+                      <p className="text-lg font-bold text-green-400">3</p>
+                      <p className="text-xs text-gray-500">Ready</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="absolute -bottom-3 -right-3 px-3 py-1.5 bg-orange-500 rounded-lg text-xs font-bold text-white shadow-lg">
+                14-day free trial
+              </div>
+            </div>
           </div>
         </div>
       </section>
